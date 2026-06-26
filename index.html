@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=customer-20260626" />
+    <link rel="stylesheet" href="./styles.css?v=targeted-import-20260626" />
   </head>
   <body>
     <aside class="sidebar">
@@ -67,7 +67,12 @@
             <p class="eyebrow">Customers</p>
             <h2>客户档案</h2>
           </div>
-          <span class="status">支持 Excel/CSV 高频更新</span>
+          <div class="inline-import" data-import-type="customers">
+            <button type="button" data-template-type="customers">客户模板</button>
+            <label class="file-pill">选择文件<input id="customerImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="customers" data-input="customerImportFile" data-status="customerImportStatus">导入客户</button>
+            <span id="customerImportStatus" class="status" aria-live="polite">支持高频更新</span>
+          </div>
         </div>
         <div class="split">
           <section class="panel">
@@ -119,6 +124,12 @@
               <option value="batch">批量单</option>
             </select>
           </label>
+          <div class="inline-import" data-import-type="orders">
+            <button type="button" data-template-type="orders">订单模板</button>
+            <label class="file-pill">选择文件<input id="orderImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="orders" data-input="orderImportFile" data-status="orderImportStatus">导入订单</button>
+            <span id="orderImportStatus" class="status" aria-live="polite"></span>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -321,7 +332,12 @@
             <p class="eyebrow">Tax Invoice</p>
             <h2>税务发票管理</h2>
           </div>
-          <span class="status">仅作经营管理，最终税务处理需财务复核</span>
+          <div class="inline-import" data-import-type="invoices">
+            <button type="button" data-template-type="invoices">发票模板</button>
+            <label class="file-pill">选择文件<input id="invoiceImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="invoices" data-input="invoiceImportFile" data-status="invoiceImportStatus">导入发票</button>
+            <span id="invoiceImportStatus" class="status" aria-live="polite">需财务复核</span>
+          </div>
         </div>
         <div class="tax-grid" id="taxKpis"></div>
         <div class="split">
@@ -364,6 +380,12 @@
             <p class="eyebrow">AR / AP</p>
             <h2>应收应付提醒</h2>
           </div>
+          <div class="inline-import" data-import-type="payables">
+            <button type="button" data-template-type="payables">应付模板</button>
+            <label class="file-pill">选择文件<input id="payableImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="payables" data-input="payableImportFile" data-status="payableImportStatus">导入应付</button>
+            <span id="payableImportStatus" class="status" aria-live="polite"></span>
+          </div>
         </div>
         <div class="split">
           <section class="panel">
@@ -389,6 +411,12 @@
             <p class="eyebrow">Inventory</p>
             <h2>材料库存金额</h2>
           </div>
+          <div class="inline-import" data-import-type="inventory">
+            <button type="button" data-template-type="inventory">库存模板</button>
+            <label class="file-pill">选择文件<input id="inventoryImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="inventory" data-input="inventoryImportFile" data-status="inventoryImportStatus">导入库存</button>
+            <span id="inventoryImportStatus" class="status" aria-live="polite"></span>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -410,7 +438,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=customer-20260626"></script>
-    <script src="./app.js?v=customer-20260626"></script>
+    <script src="./xlsx.full.min.js?v=targeted-import-20260626"></script>
+    <script src="./app.js?v=targeted-import-20260626"></script>
   </body>
 </html>

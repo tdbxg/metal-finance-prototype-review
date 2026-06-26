@@ -848,12 +848,17 @@ function csvEscape(value) {
   return `"${String(value ?? "").replaceAll('"', '""')}"`;
 }
 
-function downloadImportTemplate() {
-  const type = document.querySelector("#importType").value;
+function downloadTemplateFor(type, statusElement) {
   const template = importTemplates[type];
+  if (!template) return;
   const rows = [template.fields, ...template.rows];
   downloadCsv(template.filename, rows);
-  document.querySelector("#importStatus").textContent = "模板已生成";
+  if (statusElement) statusElement.textContent = "模板已生成";
+}
+
+function downloadImportTemplate() {
+  const type = document.querySelector("#importType").value;
+  downloadTemplateFor(type, document.querySelector("#importStatus"));
 }
 
 function parseCsv(text) {
@@ -900,13 +905,13 @@ function mapOrderType(value) {
   return "small_batch";
 }
 
-async function readImportRows() {
-  const file = document.querySelector("#csvInput").files[0];
+async function readRowsFromInput(input, statusElement) {
+  const file = input?.files?.[0];
   if (!file) return [];
   const fileName = file.name.toLowerCase();
   if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
     if (!window.XLSX) {
-      document.querySelector("#importStatus").textContent = "Excel 解析库未加载，请先另存为 CSV";
+      if (statusElement) statusElement.textContent = "Excel 解析库未加载，请先另存为 CSV";
       return [];
     }
     const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
@@ -918,20 +923,17 @@ async function readImportRows() {
   return rowsToObjects(parseCsv(text.replace(/^\ufeff/, "")));
 }
 
+async function readImportRows() {
+  return readRowsFromInput(document.querySelector("#csvInput"), document.querySelector("#importStatus"));
+}
+
 async function previewImportFile() {
   const rows = await readImportRows();
   renderImportPreview(rows);
   document.querySelector("#importStatus").textContent = rows.length ? `已读取 ${rows.length} 行` : "未读取到数据";
 }
 
-async function importCsvData() {
-  const type = document.querySelector("#importType").value;
-  const rows = await readImportRows();
-  if (!rows.length) {
-    document.querySelector("#importStatus").textContent = "请先选择 Excel/CSV 文件";
-    return;
-  }
-
+function applyImportedRows(type, rows) {
   if (type === "customers") {
     const result = { created: 0, updated: 0 };
     rows.forEach((row) => {
@@ -950,8 +952,10 @@ async function importCsvData() {
       });
       result[action] += 1;
     });
-    document.querySelector("#importStatus").textContent = `客户档案：新增 ${result.created}，更新 ${result.updated}`;
-  } else if (type === "orders") {
+    return `客户档案：新增 ${result.created}，更新 ${result.updated}`;
+  }
+
+  if (type === "orders") {
     rows.forEach((row) => {
       state.orders.push({
         id: row["订单编号"] || `SO-${Date.now()}`,
@@ -988,7 +992,10 @@ async function importCsvData() {
         paymentMethod: "银行转账",
       });
     });
-  } else if (type === "invoices") {
+    return `订单利润：已导入 ${rows.length} 行`;
+  }
+
+  if (type === "invoices") {
     rows.forEach((row) => {
       const invoice = {
         direction: mapInvoiceDirection(row["发票方向"] || "进项"),
@@ -1010,7 +1017,10 @@ async function importCsvData() {
       invoice.matchStatus = inferInvoiceMatch(invoice);
       state.invoices.push(invoice);
     });
-  } else if (type === "payables") {
+    return `发票清单：已导入 ${rows.length} 行`;
+  }
+
+  if (type === "payables") {
     rows.forEach((row) => {
       state.payables.push({
         supplier: row["供应商"] || "未命名供应商",
@@ -1021,7 +1031,10 @@ async function importCsvData() {
         invoice: row["发票状态"] || "待开票",
       });
     });
-  } else {
+    return `应付账款：已导入 ${rows.length} 行`;
+  }
+
+  if (type === "inventory") {
     rows.forEach((row) => {
       state.inventory.push({
         name: row["材料名称"] || "未命名材料",
@@ -1034,11 +1047,42 @@ async function importCsvData() {
         loss: Number(row["损耗率"] || 0),
       });
     });
+    return `材料库存：已导入 ${rows.length} 行`;
   }
 
-  if (type !== "customers") document.querySelector("#importStatus").textContent = `已导入 ${rows.length} 行`;
+  return `已导入 ${rows.length} 行`;
+}
+
+async function importCsvData() {
+  const type = document.querySelector("#importType").value;
+  const status = document.querySelector("#importStatus");
+  const rows = await readImportRows();
+  if (!rows.length) {
+    status.textContent = "请先选择 Excel/CSV 文件";
+    return;
+  }
+
+  status.textContent = applyImportedRows(type, rows);
   renderAll();
   renderImportPreview(rows);
+}
+
+async function quickImportData(type, inputId, statusId) {
+  const status = document.querySelector(`#${statusId}`);
+  const input = document.querySelector(`#${inputId}`);
+  const rows = await readRowsFromInput(input, status);
+  if (!rows.length) {
+    if (status) status.textContent = "请先选择文件";
+    return;
+  }
+
+  if (!importTemplates[type]) {
+    if (status) status.textContent = "导入类型不存在";
+    return;
+  }
+
+  if (status) status.textContent = applyImportedRows(type, rows);
+  renderAll();
 }
 
 function quoteSettings() {
@@ -1248,6 +1292,15 @@ document.querySelector("#importType").addEventListener("change", () => {
   renderImportFields();
   renderImportPreview();
   document.querySelector("#importStatus").textContent = "";
+});
+document.querySelectorAll("[data-template-type]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const status = button.closest(".inline-import")?.querySelector(".status") || document.querySelector("#importStatus");
+    downloadTemplateFor(button.dataset.templateType, status);
+  });
+});
+document.querySelectorAll("[data-quick-import]").forEach((button) => {
+  button.addEventListener("click", () => quickImportData(button.dataset.quickImport, button.dataset.input, button.dataset.status));
 });
 document.querySelector("#applyCaptureBtn").addEventListener("click", applyCapture);
 document.querySelector("#documentInput").addEventListener("change", (event) => {
