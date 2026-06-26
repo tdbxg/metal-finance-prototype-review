@@ -1,4 +1,58 @@
 const defaultState = {
+  customers: [
+    {
+      name: "苏州恒远自动化",
+      taxId: "91320500MA00000001",
+      contact: "王经理",
+      phone: "13800000001",
+      region: "江苏苏州",
+      address: "苏州市工业园区样例路 18 号",
+      level: "A",
+      paymentTerm: "30天",
+      status: "合作中",
+      updatedAt: "2026-06-24",
+      note: "钣金支架类订单较多",
+    },
+    {
+      name: "上海驰越自动化",
+      taxId: "91310000MA1K000001",
+      contact: "李工",
+      phone: "13800000002",
+      region: "上海",
+      address: "上海市嘉定区样例路 88 号",
+      level: "A",
+      paymentTerm: "月结30天",
+      status: "合作中",
+      updatedAt: "2026-06-21",
+      note: "批量订单客户",
+    },
+    {
+      name: "杭州锐科机器人",
+      taxId: "91330100MA00000003",
+      contact: "陈经理",
+      phone: "13800000003",
+      region: "浙江杭州",
+      address: "杭州市滨江区样例路 66 号",
+      level: "B",
+      paymentTerm: "预付50%",
+      status: "打样中",
+      updatedAt: "2026-06-18",
+      note: "样品转批量跟进",
+    },
+    {
+      name: "深圳铭创医疗",
+      taxId: "91440300MA00000004",
+      contact: "赵工",
+      phone: "13800000004",
+      region: "广东深圳",
+      address: "深圳市宝安区样例路 12 号",
+      level: "B",
+      paymentTerm: "款到发货",
+      status: "合作中",
+      updatedAt: "2026-06-10",
+      note: "医疗件需关注质检资料",
+    },
+  ],
   orders: [
     {
       id: "SO-2406-018",
@@ -262,6 +316,14 @@ const categoryCostKey = {
 };
 
 const importTemplates = {
+  customers: {
+    filename: "客户档案导入模板.csv",
+    fields: ["客户名称", "税号", "联系人", "手机", "地区", "地址", "客户等级", "账期", "状态", "更新时间", "备注"],
+    rows: [
+      ["苏州恒远自动化", "91320500MA00000001", "王经理", "13800000001", "江苏苏州", "苏州市工业园区新地址 28 号", "A", "45天", "合作中", "2026-06-26", "账期更新为45天"],
+      ["宁波新客户科技", "91330200MA00000005", "周经理", "13800000005", "浙江宁波", "宁波市北仑区样例路 99 号", "C", "预付30%", "新客户", "2026-06-26", "首次询价客户"],
+    ],
+  },
   orders: {
     filename: "订单利润导入模板.csv",
     fields: ["订单编号", "客户", "订单类型", "月份", "交付区域", "数量", "收入", "材料成本", "加工成本", "外协成本", "包装物流", "已收款", "应收日期"],
@@ -350,6 +412,21 @@ function typeName(type) {
 function typeTag(type) {
   const cls = type === "sample" ? "warn" : "";
   return `<span class="tag ${cls}">${typeName(type)}</span>`;
+}
+
+function customerKey(customer) {
+  return (customer.taxId || customer.name || "").trim().toLowerCase();
+}
+
+function upsertCustomer(customer) {
+  const key = customerKey(customer);
+  const index = state.customers.findIndex((item) => customerKey(item) === key || item.name === customer.name);
+  if (index >= 0) {
+    state.customers[index] = { ...state.customers[index], ...customer };
+    return "updated";
+  }
+  state.customers.push(customer);
+  return "created";
 }
 
 function directionName(direction) {
@@ -492,6 +569,49 @@ function renderCustomerRank() {
       const margin = item.revenue ? (item.gross / item.revenue) * 100 : 0;
       return `<div class="rank-item"><div><strong>${name}</strong><span class="subtext">${item.count} 单 / 毛利率 ${margin.toFixed(1)}%</span></div><span class="money">${currency.format(item.gross)}</span></div>`;
     })
+    .join("");
+}
+
+function renderCustomers() {
+  const rows = document.querySelector("#customerRows");
+  const updates = document.querySelector("#customerUpdateList");
+  const options = document.querySelector("#customerOptions");
+  if (options) {
+    options.innerHTML = state.customers.map((customer) => `<option value="${customer.name}"></option>`).join("");
+  }
+  if (!rows || !updates) return;
+
+  rows.innerHTML = state.customers
+    .slice()
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .map((customer) => `
+      <tr>
+        <td><strong>${customer.name}</strong><span class="subtext">${customer.note || ""}</span></td>
+        <td>${customer.taxId || "-"}</td>
+        <td>${customer.contact || "-"}</td>
+        <td>${customer.phone || "-"}</td>
+        <td>${customer.region || "-"}</td>
+        <td><span class="tag">${customer.level || "-"}</span></td>
+        <td>${customer.paymentTerm || "-"}</td>
+        <td>${customer.status || "-"}</td>
+        <td>${customer.updatedAt || "-"}</td>
+      </tr>
+    `)
+    .join("");
+
+  updates.innerHTML = state.customers
+    .slice()
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, 5)
+    .map((customer) => `
+      <div class="mini-row">
+        <div>
+          <strong>${customer.name}</strong>
+          <span class="subtext">${customer.contact || "-"} / ${customer.paymentTerm || "-"} / ${customer.region || "-"}</span>
+        </div>
+        <span class="tag">${customer.updatedAt}</span>
+      </div>
+    `)
     .join("");
 }
 
@@ -812,7 +932,26 @@ async function importCsvData() {
     return;
   }
 
-  if (type === "orders") {
+  if (type === "customers") {
+    const result = { created: 0, updated: 0 };
+    rows.forEach((row) => {
+      const action = upsertCustomer({
+        name: row["客户名称"] || "未命名客户",
+        taxId: row["税号"] || "",
+        contact: row["联系人"] || "",
+        phone: row["手机"] || "",
+        region: row["地区"] || "",
+        address: row["地址"] || "",
+        level: row["客户等级"] || "C",
+        paymentTerm: row["账期"] || "",
+        status: row["状态"] || "待跟进",
+        updatedAt: row["更新时间"] || new Date().toISOString().slice(0, 10),
+        note: row["备注"] || "",
+      });
+      result[action] += 1;
+    });
+    document.querySelector("#importStatus").textContent = `客户档案：新增 ${result.created}，更新 ${result.updated}`;
+  } else if (type === "orders") {
     rows.forEach((row) => {
       state.orders.push({
         id: row["订单编号"] || `SO-${Date.now()}`,
@@ -897,7 +1036,7 @@ async function importCsvData() {
     });
   }
 
-  document.querySelector("#importStatus").textContent = `已导入 ${rows.length} 行`;
+  if (type !== "customers") document.querySelector("#importStatus").textContent = `已导入 ${rows.length} 行`;
   renderAll();
   renderImportPreview(rows);
 }
@@ -1072,6 +1211,7 @@ function downloadCsv(filename, rows) {
 
 function renderAll() {
   renderKpis();
+  renderCustomers();
   renderOrders();
   renderMonthlyBars();
   renderCustomerRank();

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=quote-20260626" />
+    <link rel="stylesheet" href="./styles.css?v=customer-20260626" />
   </head>
   <body>
     <aside class="sidebar">
@@ -17,6 +17,7 @@
       </div>
       <nav aria-label="主导航">
         <a class="active" href="#dashboard">总览</a>
+        <a href="#customers">客户档案</a>
         <a href="#orders">订单利润</a>
         <a href="#quote">报价核算</a>
         <a href="#capture">票据识别</a>
@@ -56,6 +57,49 @@
               <span>按毛利金额</span>
             </div>
             <div class="rank-list" id="customerRank"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="customers" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Customers</p>
+            <h2>客户档案</h2>
+          </div>
+          <span class="status">支持 Excel/CSV 高频更新</span>
+        </div>
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>客户台账</h2>
+              <span>名称、税号、联系人、账期、更新时间</span>
+            </div>
+            <div class="table-wrap compact-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>客户</th>
+                    <th>税号</th>
+                    <th>联系人</th>
+                    <th>手机</th>
+                    <th>地区</th>
+                    <th>等级</th>
+                    <th>账期</th>
+                    <th>状态</th>
+                    <th>最近更新</th>
+                  </tr>
+                </thead>
+                <tbody id="customerRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>更新提醒</h2>
+              <span>频繁变更信息</span>
+            </div>
+            <div class="mini-table" id="customerUpdateList"></div>
           </section>
         </div>
       </section>
@@ -111,7 +155,8 @@
         <div class="quote-layout">
           <section class="panel quote-editor">
             <div class="quote-meta">
-              <label>客户<input id="quoteCustomer" value="苏州恒远自动化" /></label>
+              <label>客户<input id="quoteCustomer" list="customerOptions" value="苏州恒远自动化" /></label>
+              <datalist id="customerOptions"></datalist>
               <label>报价单号<input id="quoteNo" value="QT-202606-001" /></label>
               <label>管理费用 %<input id="quoteOverhead" type="number" step="1" value="12" /></label>
               <label>目标利润率 %<input id="quoteMargin" type="number" step="1" value="28" /></label>
@@ -238,6 +283,7 @@
             </div>
             <form class="import-form" id="importForm">
               <label>数据类型<select id="importType" name="importType">
+                <option value="customers">客户档案</option>
                 <option value="orders">订单利润数据</option>
                 <option value="invoices">发票清单</option>
                 <option value="payables">应付账款</option>
@@ -364,7 +410,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=quote-20260626"></script>
-    <script src="./app.js?v=quote-20260626"></script>
+    <script src="./xlsx.full.min.js?v=customer-20260626"></script>
+    <script src="./app.js?v=customer-20260626"></script>
   </body>
 </html>
