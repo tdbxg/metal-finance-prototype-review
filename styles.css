@@ -231,7 +231,8 @@ h2 {
 
 .split,
 .quote-layout,
-.capture-layout {
+.capture-layout,
+.import-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
   gap: 14px;
@@ -240,6 +241,10 @@ h2 {
 
 .capture-layout {
   grid-template-columns: minmax(280px, 0.8fr) minmax(320px, 1fr) minmax(280px, 0.8fr);
+}
+
+.import-layout {
+  grid-template-columns: minmax(320px, 0.8fr) minmax(280px, 0.75fr) minmax(320px, 1fr);
 }
 
 .panel,
@@ -390,7 +395,9 @@ tbody tr:hover {
 
 .quote-form input,
 .recognition-form input,
-.recognition-form select {
+.recognition-form select,
+.import-form input,
+.import-form select {
   width: 100%;
   min-height: 36px;
   padding: 0 10px;
@@ -491,6 +498,32 @@ tbody tr:hover {
   color: #fff;
 }
 
+.import-form {
+  display: grid;
+  gap: 10px;
+}
+
+.import-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.import-actions button:last-child {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 @media (max-width: 980px) {
   .sidebar {
     position: static;
@@ -498,7 +531,7 @@ tbody tr:hover {
   }
 
   nav {
-    grid-template-columns: repeat(6, minmax(80px, 1fr));
+    grid-template-columns: repeat(7, minmax(80px, 1fr));
     overflow-x: auto;
   }
 
@@ -516,6 +549,7 @@ tbody tr:hover {
   .split,
   .quote-layout,
   .capture-layout,
+  .import-layout,
   .quote-form,
   .recognition-form {
     grid-template-columns: 1fr;

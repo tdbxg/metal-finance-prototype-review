@@ -20,6 +20,7 @@
         <a href="#orders">订单利润</a>
         <a href="#quote">报价核算</a>
         <a href="#capture">票据识别</a>
+        <a href="#import">Excel导入</a>
         <a href="#receivables">应收应付</a>
         <a href="#inventory">材料库存</a>
       </nav>
@@ -199,6 +200,52 @@
         </div>
       </section>
 
+      <section id="import" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Import</p>
+            <h2>Excel/CSV 批量导入</h2>
+          </div>
+          <span id="importStatus" class="status" aria-live="polite"></span>
+        </div>
+        <div class="import-layout">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>导入数据</h2>
+              <span>支持 .xlsx / .xls / .csv</span>
+            </div>
+            <form class="import-form" id="importForm">
+              <label>数据类型<select id="importType" name="importType">
+                <option value="orders">订单利润数据</option>
+                <option value="payables">应付账款</option>
+                <option value="inventory">材料库存</option>
+              </select></label>
+              <label>选择文件<input id="csvInput" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            </form>
+            <div class="import-actions">
+              <button id="downloadTemplateBtn" type="button">下载模板</button>
+              <button id="importCsvBtn" type="button">导入数据</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>字段要求</h2>
+              <span>按模板列名填写</span>
+            </div>
+            <div class="mini-table" id="importFields"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>导入预览</h2>
+              <span>显示前 5 行</span>
+            </div>
+            <div class="mini-table" id="importPreview"></div>
+          </section>
+        </div>
+      </section>
+
       <section id="receivables" class="section">
         <div class="section-title">
           <div>
@@ -251,6 +298,7 @@
       </section>
     </main>
 
+    <script src="./xlsx.full.min.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

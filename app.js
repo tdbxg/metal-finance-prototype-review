@@ -208,6 +208,33 @@ const categoryCostKey = {
   "CNC 外协": "cnc",
 };
 
+const importTemplates = {
+  orders: {
+    filename: "订单利润导入模板.csv",
+    fields: ["订单编号", "客户", "订单类型", "月份", "交付区域", "数量", "收入", "材料成本", "加工成本", "外协成本", "包装物流", "已收款", "应收日期"],
+    rows: [
+      ["SO-2406-099", "苏州样例客户", "小批量", "2026-06", "江苏苏州", "80", "68000", "18000", "22000", "6000", "3500", "30000", "2026-07-15"],
+      ["SO-2406-100", "深圳样例客户", "批量单", "2026-06", "广东深圳", "300", "128000", "42000", "36000", "12000", "5800", "64000", "2026-07-20"],
+    ],
+  },
+  payables: {
+    filename: "应付账款导入模板.csv",
+    fields: ["供应商", "费用类别", "应付金额", "已付金额", "付款日期", "发票状态"],
+    rows: [
+      ["佛山板材供应商", "材料", "26000", "10000", "2026-07-05", "待开票"],
+      ["东莞喷粉外协厂", "表面处理", "8600", "0", "2026-07-08", "未到票"],
+    ],
+  },
+  inventory: {
+    filename: "材料库存导入模板.csv",
+    fields: ["材料名称", "材质", "厚度", "规格", "库存数量", "单位", "单价", "损耗率"],
+    rows: [
+      ["冷轧板", "碳钢", "2.0mm", "1220x2440", "1200", "kg", "5.9", "8"],
+      ["304 不锈钢板", "不锈钢", "1.5mm", "1500x3000", "680", "kg", "17.2", "10"],
+    ],
+  },
+};
+
 function sumObject(obj) {
   return Object.values(obj).reduce((sum, value) => sum + Number(value || 0), 0);
 }
@@ -404,6 +431,30 @@ function renderCaptureHistory() {
     .join("");
 }
 
+function renderImportFields() {
+  const type = document.querySelector("#importType")?.value || "orders";
+  const target = document.querySelector("#importFields");
+  if (!target) return;
+  target.innerHTML = importTemplates[type].fields
+    .map((field) => `<div class="mini-row"><strong>${field}</strong><span class="tag">必填</span></div>`)
+    .join("");
+  const status = document.querySelector("#importStatus");
+  if (status && !window.XLSX) status.textContent = "Excel库未加载时仍可导入CSV";
+}
+
+function renderImportPreview(rows = []) {
+  const target = document.querySelector("#importPreview");
+  if (!target) return;
+  if (!rows.length) {
+    target.innerHTML = `<div class="mini-row"><strong>暂无预览</strong><span class="subtext">选择 Excel/CSV 后显示</span></div>`;
+    return;
+  }
+  target.innerHTML = rows
+    .slice(0, 5)
+    .map((row, index) => `<div class="mini-row"><strong>第 ${index + 1} 行</strong><span class="subtext">${Object.values(row).join(" / ")}</span></div>`)
+    .join("");
+}
+
 function setRecognition(values) {
   const form = document.querySelector("#recognitionForm");
   Object.entries(values).forEach(([key, value]) => {
@@ -470,6 +521,162 @@ function previewUpload(file) {
   });
 }
 
+function csvEscape(value) {
+  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+}
+
+function downloadImportTemplate() {
+  const type = document.querySelector("#importType").value;
+  const template = importTemplates[type];
+  const rows = [template.fields, ...template.rows];
+  downloadCsv(template.filename, rows);
+  document.querySelector("#importStatus").textContent = "模板已生成";
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (char === '"' && inQuotes && next === '"') {
+      cell += '"';
+      index += 1;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(cell);
+      if (row.some((value) => value.trim() !== "")) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+  row.push(cell);
+  if (row.some((value) => value.trim() !== "")) rows.push(row);
+  return rows;
+}
+
+function rowsToObjects(rows) {
+  const headers = rows[0]?.map((header) => header.trim()) || [];
+  return rows.slice(1).map((row) =>
+    Object.fromEntries(headers.map((header, index) => [header, (row[index] || "").trim()]))
+  );
+}
+
+function mapOrderType(value) {
+  if (value === "样品单") return "sample";
+  if (value === "批量单") return "batch";
+  return "small_batch";
+}
+
+async function readImportRows() {
+  const file = document.querySelector("#csvInput").files[0];
+  if (!file) return [];
+  const fileName = file.name.toLowerCase();
+  if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+    if (!window.XLSX) {
+      document.querySelector("#importStatus").textContent = "Excel 解析库未加载，请先另存为 CSV";
+      return [];
+    }
+    const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+    return rowsToObjects(rows.map((row) => row.map((cell) => String(cell))));
+  }
+  const text = await file.text();
+  return rowsToObjects(parseCsv(text.replace(/^\ufeff/, "")));
+}
+
+async function previewImportFile() {
+  const rows = await readImportRows();
+  renderImportPreview(rows);
+  document.querySelector("#importStatus").textContent = rows.length ? `已读取 ${rows.length} 行` : "未读取到数据";
+}
+
+async function importCsvData() {
+  const type = document.querySelector("#importType").value;
+  const rows = await readImportRows();
+  if (!rows.length) {
+    document.querySelector("#importStatus").textContent = "请先选择 Excel/CSV 文件";
+    return;
+  }
+
+  if (type === "orders") {
+    rows.forEach((row) => {
+      state.orders.push({
+        id: row["订单编号"] || `SO-${Date.now()}`,
+        customer: row["客户"] || "未命名客户",
+        month: row["月份"] || "2026-06",
+        type: mapOrderType(row["订单类型"]),
+        qty: Number(row["数量"] || 0),
+        region: row["交付区域"] || "",
+        revenue: {
+          processing: Number(row["收入"] || 0),
+          material: 0,
+          surface: 0,
+          packing: 0,
+          shipping: 0,
+          tooling: 0,
+        },
+        costs: {
+          material: Number(row["材料成本"] || 0),
+          laser: Number(row["加工成本"] || 0),
+          bending: 0,
+          cnc: 0,
+          welding: 0,
+          deburring: 0,
+          surface: Number(row["外协成本"] || 0),
+          packing: Number(row["包装物流"] || 0),
+          logistics: 0,
+          labor: 0,
+          depreciation: 0,
+          platform: 0,
+          financeFee: 0,
+        },
+        received: Number(row["已收款"] || 0),
+        dueDate: row["应收日期"] || "2026-07-01",
+        paymentMethod: "银行转账",
+      });
+    });
+  } else if (type === "payables") {
+    rows.forEach((row) => {
+      state.payables.push({
+        supplier: row["供应商"] || "未命名供应商",
+        category: row["费用类别"] || "材料",
+        amount: Number(row["应付金额"] || 0),
+        paid: Number(row["已付金额"] || 0),
+        dueDate: row["付款日期"] || "2026-07-01",
+        invoice: row["发票状态"] || "待开票",
+      });
+    });
+  } else {
+    rows.forEach((row) => {
+      state.inventory.push({
+        name: row["材料名称"] || "未命名材料",
+        material: row["材质"] || "",
+        thickness: row["厚度"] || "",
+        spec: row["规格"] || "",
+        qty: Number(row["库存数量"] || 0),
+        unit: row["单位"] || "kg",
+        price: Number(row["单价"] || 0),
+        loss: Number(row["损耗率"] || 0),
+      });
+    });
+  }
+
+  document.querySelector("#importStatus").textContent = `已导入 ${rows.length} 行`;
+  renderAll();
+  renderImportPreview(rows);
+}
+
 function getQuoteValues() {
   const formData = new FormData(document.querySelector("#quoteForm"));
   return Object.fromEntries([...formData.entries()].map(([key, value]) => [key, Number(value)]));
@@ -534,23 +741,27 @@ function exportCsv() {
       revenue - order.received,
     ]);
   });
-  const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
-  const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "metal-order-profit.csv";
-  link.style.display = "none";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  downloadCsv("metal-order-profit.csv", rows);
   if (status) {
     status.textContent = `已生成 ${state.orders.length} 单`;
     window.setTimeout(() => {
       status.textContent = "";
     }, 3000);
   }
+}
+
+function downloadCsv(filename, rows) {
+  const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+  const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function renderAll() {
@@ -563,12 +774,21 @@ function renderAll() {
   renderQuote();
   renderCaptureOrders();
   renderCaptureHistory();
+  renderImportFields();
 }
 
 document.querySelector("#orderFilter").addEventListener("change", renderOrders);
 document.querySelector("#quoteBtn").addEventListener("click", renderQuote);
 document.querySelector("#quoteForm").addEventListener("input", renderQuote);
 document.querySelector("#exportBtn").addEventListener("click", exportCsv);
+document.querySelector("#downloadTemplateBtn").addEventListener("click", downloadImportTemplate);
+document.querySelector("#importCsvBtn").addEventListener("click", importCsvData);
+document.querySelector("#csvInput").addEventListener("change", previewImportFile);
+document.querySelector("#importType").addEventListener("change", () => {
+  renderImportFields();
+  renderImportPreview();
+  document.querySelector("#importStatus").textContent = "";
+});
 document.querySelector("#applyCaptureBtn").addEventListener("click", applyCapture);
 document.querySelector("#documentInput").addEventListener("change", (event) => {
   previewUpload(event.target.files[0]);
