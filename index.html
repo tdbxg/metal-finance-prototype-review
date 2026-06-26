@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=tax-20260626" />
+    <link rel="stylesheet" href="./styles.css?v=quote-20260626" />
   </head>
   <body>
     <aside class="sidebar">
@@ -101,33 +101,54 @@
         <div class="section-title">
           <div>
             <p class="eyebrow">Quotation</p>
-            <h2>快速报价核算</h2>
+            <h2>多零件报价单</h2>
           </div>
-          <button id="quoteBtn" type="button">重新计算</button>
+          <div class="toolbar">
+            <button id="addQuoteLineBtn" type="button">新增零件</button>
+            <button id="quoteBtn" type="button">重新计算</button>
+          </div>
         </div>
         <div class="quote-layout">
-          <form class="quote-form" id="quoteForm">
-            <label>材料单价 / kg<input name="materialPrice" type="number" step="0.01" value="18" /></label>
-            <label>单件重量 kg<input name="weight" type="number" step="0.01" value="1.8" /></label>
-            <label>材料利用率 %<input name="utilization" type="number" step="1" value="82" /></label>
-            <label>切割时间 分钟<input name="cutMinutes" type="number" step="0.1" value="4.5" /></label>
-            <label>切割费 / 分钟<input name="cutRate" type="number" step="0.1" value="3.2" /></label>
-            <label>折弯次数<input name="bends" type="number" step="1" value="6" /></label>
-            <label>单次折弯费<input name="bendRate" type="number" step="0.1" value="1.8" /></label>
-            <label>CNC 工时<input name="cncHours" type="number" step="0.1" value="0.35" /></label>
-            <label>CNC 费 / 小时<input name="cncRate" type="number" step="1" value="120" /></label>
-            <label>焊接工时<input name="weldHours" type="number" step="0.1" value="0.2" /></label>
-            <label>焊接费 / 小时<input name="weldRate" type="number" step="1" value="90" /></label>
-            <label>表面处理 / 件<input name="surface" type="number" step="0.1" value="16" /></label>
-            <label>包装 / 件<input name="packing" type="number" step="0.1" value="5" /></label>
-            <label>运费估算 / 件<input name="shipping" type="number" step="0.1" value="8" /></label>
-            <label>管理费用 %<input name="overhead" type="number" step="1" value="12" /></label>
-            <label>目标利润率 %<input name="margin" type="number" step="1" value="28" /></label>
-          </form>
+          <section class="panel quote-editor">
+            <div class="quote-meta">
+              <label>客户<input id="quoteCustomer" value="苏州恒远自动化" /></label>
+              <label>报价单号<input id="quoteNo" value="QT-202606-001" /></label>
+              <label>管理费用 %<input id="quoteOverhead" type="number" step="1" value="12" /></label>
+              <label>目标利润率 %<input id="quoteMargin" type="number" step="1" value="28" /></label>
+            </div>
+            <div class="table-wrap quote-lines-wrap">
+              <table class="quote-lines-table">
+                <thead>
+                  <tr>
+                    <th>图号/零件</th>
+                    <th>数量</th>
+                    <th>材料单价/kg</th>
+                    <th>重量kg</th>
+                    <th>利用率%</th>
+                    <th>切割分</th>
+                    <th>折弯</th>
+                    <th>CNC时</th>
+                    <th>焊接时</th>
+                    <th>表处</th>
+                    <th>包装物流</th>
+                    <th>单价</th>
+                    <th>总价</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="quoteLineRows"></tbody>
+              </table>
+            </div>
+          </section>
           <section class="panel quote-output">
             <div class="panel-head">
-              <h2>阶梯报价</h2>
-              <span>10 / 50 / 100 / 500 件</span>
+              <h2>报价汇总</h2>
+              <span>内部成本 / 客户报价</span>
+            </div>
+            <div class="quote-summary" id="quoteSummary"></div>
+            <div class="panel-head compact-head">
+              <h2>整单阶梯预估</h2>
+              <span>10 / 50 / 100 / 500 套</span>
             </div>
             <div id="quoteResults"></div>
           </section>
@@ -343,7 +364,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=tax-20260626"></script>
-    <script src="./app.js?v=tax-20260626"></script>
+    <script src="./xlsx.full.min.js?v=quote-20260626"></script>
+    <script src="./app.js?v=quote-20260626"></script>
   </body>
 </html>

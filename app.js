@@ -296,6 +296,37 @@ const importTemplates = {
   },
 };
 
+const defaultQuoteLines = [
+  {
+    part: "BRK-001 支架",
+    qty: 100,
+    materialPrice: 18,
+    weight: 1.8,
+    utilization: 82,
+    cutMinutes: 4.5,
+    bends: 6,
+    cncHours: 0.35,
+    weldHours: 0.2,
+    surface: 16,
+    packingLogistics: 13,
+  },
+  {
+    part: "COV-002 外壳",
+    qty: 100,
+    materialPrice: 16.8,
+    weight: 2.4,
+    utilization: 78,
+    cutMinutes: 6,
+    bends: 10,
+    cncHours: 0.1,
+    weldHours: 0.35,
+    surface: 22,
+    packingLogistics: 16,
+  },
+];
+
+let quoteLines = structuredClone(defaultQuoteLines);
+
 function sumObject(obj) {
   return Object.values(obj).reduce((sum, value) => sum + Number(value || 0), 0);
 }
@@ -871,47 +902,128 @@ async function importCsvData() {
   renderImportPreview(rows);
 }
 
-function getQuoteValues() {
-  const formData = new FormData(document.querySelector("#quoteForm"));
-  return Object.fromEntries([...formData.entries()].map(([key, value]) => [key, Number(value)]));
-}
-
-function quoteForQty(qty, values) {
-  const material = (values.materialPrice * values.weight) / Math.max(values.utilization / 100, 0.01);
-  const process =
-    values.cutMinutes * values.cutRate +
-    values.bends * values.bendRate +
-    values.cncHours * values.cncRate +
-    values.weldHours * values.weldRate +
-    values.surface +
-    values.packing +
-    values.shipping;
-  const scaleDiscount = qty >= 500 ? 0.86 : qty >= 100 ? 0.91 : qty >= 50 ? 0.96 : 1;
-  const directCost = (material + process) * scaleDiscount;
-  const overhead = directCost * (values.overhead / 100);
-  const totalCost = directCost + overhead;
-  const unitPriceRmb = totalCost / Math.max(1 - values.margin / 100, 0.01);
+function quoteSettings() {
   return {
-    qty,
-    unitCost: totalCost,
-    unitPriceRmb,
-    totalRmb: unitPriceRmb * qty,
+    overhead: Number(document.querySelector("#quoteOverhead")?.value || 0),
+    margin: Number(document.querySelector("#quoteMargin")?.value || 0),
   };
 }
 
+function quoteLineCost(line, scaleDiscount = 1) {
+  const material = (line.materialPrice * line.weight) / Math.max(line.utilization / 100, 0.01);
+  const process =
+    line.cutMinutes * 3.2 +
+    line.bends * 1.8 +
+    line.cncHours * 120 +
+    line.weldHours * 90 +
+    line.surface +
+    line.packingLogistics;
+  return (material + process) * scaleDiscount;
+}
+
+function quoteLineResult(line, settings, scaleDiscount = 1) {
+  const directCost = quoteLineCost(line, scaleDiscount);
+  const unitCost = directCost * (1 + settings.overhead / 100);
+  const unitPrice = unitCost / Math.max(1 - settings.margin / 100, 0.01);
+  return {
+    unitCost,
+    unitPrice,
+    totalCost: unitCost * line.qty,
+    totalPrice: unitPrice * line.qty,
+  };
+}
+
+function updateQuoteLine(index, key, value) {
+  const numericKeys = new Set(["qty", "materialPrice", "weight", "utilization", "cutMinutes", "bends", "cncHours", "weldHours", "surface", "packingLogistics"]);
+  quoteLines[index][key] = numericKeys.has(key) ? Number(value || 0) : value;
+  renderQuote();
+}
+
+function addQuoteLine() {
+  quoteLines.push({
+    part: `NEW-${String(quoteLines.length + 1).padStart(3, "0")} 新零件`,
+    qty: 50,
+    materialPrice: 18,
+    weight: 1,
+    utilization: 82,
+    cutMinutes: 3,
+    bends: 4,
+    cncHours: 0,
+    weldHours: 0,
+    surface: 10,
+    packingLogistics: 8,
+  });
+  renderQuote();
+}
+
+function removeQuoteLine(index) {
+  if (quoteLines.length <= 1) return;
+  quoteLines.splice(index, 1);
+  renderQuote();
+}
+
+function renderQuoteLines(settings) {
+  document.querySelector("#quoteLineRows").innerHTML = quoteLines
+    .map((line, index) => {
+      const result = quoteLineResult(line, settings);
+      return `
+        <tr>
+          <td><input value="${line.part}" data-quote-index="${index}" data-quote-key="part" /></td>
+          <td><input type="number" value="${line.qty}" data-quote-index="${index}" data-quote-key="qty" /></td>
+          <td><input type="number" step="0.01" value="${line.materialPrice}" data-quote-index="${index}" data-quote-key="materialPrice" /></td>
+          <td><input type="number" step="0.01" value="${line.weight}" data-quote-index="${index}" data-quote-key="weight" /></td>
+          <td><input type="number" value="${line.utilization}" data-quote-index="${index}" data-quote-key="utilization" /></td>
+          <td><input type="number" step="0.1" value="${line.cutMinutes}" data-quote-index="${index}" data-quote-key="cutMinutes" /></td>
+          <td><input type="number" value="${line.bends}" data-quote-index="${index}" data-quote-key="bends" /></td>
+          <td><input type="number" step="0.1" value="${line.cncHours}" data-quote-index="${index}" data-quote-key="cncHours" /></td>
+          <td><input type="number" step="0.1" value="${line.weldHours}" data-quote-index="${index}" data-quote-key="weldHours" /></td>
+          <td><input type="number" step="0.1" value="${line.surface}" data-quote-index="${index}" data-quote-key="surface" /></td>
+          <td><input type="number" step="0.1" value="${line.packingLogistics}" data-quote-index="${index}" data-quote-key="packingLogistics" /></td>
+          <td class="money">${currency.format(result.unitPrice)}</td>
+          <td class="money">${currency.format(result.totalPrice)}</td>
+          <td><button class="icon-button" type="button" data-remove-quote="${index}" title="删除零件">删</button></td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
 function renderQuote() {
-  const values = getQuoteValues();
-  const rows = [10, 50, 100, 500].map((qty) => quoteForQty(qty, values));
-  document.querySelector("#quoteResults").innerHTML = rows
-    .map((row) => `
-      <div class="quote-row">
-        <div>
-          <strong>${row.qty} 件</strong>
-          <span class="subtext">单位成本 ${currency.format(row.unitCost)} / 含目标利润</span>
+  const settings = quoteSettings();
+  renderQuoteLines(settings);
+
+  const lineResults = quoteLines.map((line) => quoteLineResult(line, settings));
+  const totalCost = lineResults.reduce((sum, line) => sum + line.totalCost, 0);
+  const totalPrice = lineResults.reduce((sum, line) => sum + line.totalPrice, 0);
+  const gross = totalPrice - totalCost;
+  const marginRate = totalPrice ? (gross / totalPrice) * 100 : 0;
+
+  document.querySelector("#quoteSummary").innerHTML = `
+    <div class="quote-row"><strong>报价单</strong><span>${document.querySelector("#quoteNo")?.value || ""}</span></div>
+    <div class="quote-row"><strong>零件行数</strong><span>${quoteLines.length} 行</span></div>
+    <div class="quote-row"><strong>内部成本</strong><span class="money">${currency.format(totalCost)}</span></div>
+    <div class="quote-row"><strong>客户报价</strong><span class="money">${currency.format(totalPrice)}</span></div>
+    <div class="quote-row"><strong>预计毛利</strong><span class="money positive">${currency.format(gross)} / ${marginRate.toFixed(1)}%</span></div>
+  `;
+
+  document.querySelector("#quoteResults").innerHTML = [10, 50, 100, 500]
+    .map((qty) => {
+      const scaleDiscount = qty >= 500 ? 0.86 : qty >= 100 ? 0.91 : qty >= 50 ? 0.96 : 1;
+      const baseQtyTotal = quoteLines.reduce((sum, line) => sum + line.qty, 0) || 1;
+      const unitSetPrice = quoteLines.reduce((sum, line) => {
+        const adjusted = quoteLineResult({ ...line, qty }, settings, scaleDiscount);
+        return sum + adjusted.totalPrice;
+      }, 0) / Math.max(quoteLines.length, 1);
+      return `
+        <div class="quote-row">
+          <div>
+            <strong>${qty} 套</strong>
+            <span class="subtext">按当前 ${baseQtyTotal} 件结构估算，批量折扣 ${Math.round(scaleDiscount * 100)}%</span>
+          </div>
+          <span class="money">${currency.format(unitSetPrice)}</span>
         </div>
-        <span class="money">${currency.format(row.totalRmb)}</span>
-      </div>
-    `)
+      `;
+    })
     .join("");
 }
 
@@ -974,7 +1086,20 @@ function renderAll() {
 
 document.querySelector("#orderFilter").addEventListener("change", renderOrders);
 document.querySelector("#quoteBtn").addEventListener("click", renderQuote);
-document.querySelector("#quoteForm").addEventListener("input", renderQuote);
+document.querySelector("#addQuoteLineBtn").addEventListener("click", addQuoteLine);
+document.querySelector("#quoteOverhead").addEventListener("input", renderQuote);
+document.querySelector("#quoteMargin").addEventListener("input", renderQuote);
+document.querySelector("#quoteCustomer").addEventListener("input", renderQuote);
+document.querySelector("#quoteNo").addEventListener("input", renderQuote);
+document.querySelector("#quoteLineRows").addEventListener("change", (event) => {
+  const index = event.target.dataset.quoteIndex;
+  const key = event.target.dataset.quoteKey;
+  if (index != null && key) updateQuoteLine(Number(index), key, event.target.value);
+});
+document.querySelector("#quoteLineRows").addEventListener("click", (event) => {
+  const index = event.target.dataset.removeQuote;
+  if (index != null) removeQuoteLine(Number(index));
+});
 document.querySelector("#exportBtn").addEventListener("click", exportCsv);
 document.querySelector("#downloadTemplateBtn").addEventListener("click", downloadImportTemplate);
 document.querySelector("#importCsvBtn").addEventListener("click", importCsvData);
@@ -993,6 +1118,7 @@ document.querySelectorAll(".doc-sample").forEach((button) => {
 });
 document.querySelector("#seedBtn").addEventListener("click", () => {
   state = structuredClone(defaultState);
+  quoteLines = structuredClone(defaultQuoteLines);
   renderAll();
 });
 

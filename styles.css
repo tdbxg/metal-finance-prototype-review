@@ -417,6 +417,67 @@ tbody tr:hover {
   align-self: start;
 }
 
+.quote-editor {
+  min-width: 0;
+}
+
+.quote-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.quote-meta label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.quote-meta input,
+.quote-lines-table input {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.quote-lines-wrap {
+  border-radius: 8px;
+}
+
+.quote-lines-table {
+  min-width: 1320px;
+}
+
+.quote-lines-table th,
+.quote-lines-table td {
+  padding: 9px 8px;
+}
+
+.quote-lines-table th:first-child,
+.quote-lines-table td:first-child {
+  min-width: 150px;
+}
+
+.quote-summary {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.compact-head {
+  margin-top: 8px;
+}
+
+.icon-button {
+  width: 34px;
+  padding: 0;
+  color: var(--danger);
+}
+
 .upload-panel {
   display: grid;
   gap: 12px;
@@ -565,6 +626,7 @@ tbody tr:hover {
   .capture-layout,
   .import-layout,
   .quote-form,
+  .quote-meta,
   .recognition-form {
     grid-template-columns: 1fr;
   }
