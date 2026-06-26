@@ -153,6 +153,59 @@ const defaultState = {
     { docNo: "INV-20260619-088", type: "供应商应付", party: "宝钢材料代理", orderId: "SO-2406-022", amount: 48600, status: "已复核" },
     { docNo: "PAY-20260621-014", type: "客户收款", party: "上海驰越自动化", orderId: "SO-2406-022", amount: 42000, status: "已入账" },
   ],
+  invoices: [
+    {
+      direction: "output",
+      invoiceType: "digital_e_invoice",
+      invoiceNumber: "25502000000123456789",
+      issueDate: "2026-06-20",
+      counterparty: "上海驰越自动化",
+      taxId: "91310000MA1K000001",
+      orderId: "SO-2406-022",
+      goodsName: "钣金加工服务",
+      amountExTax: 72000,
+      taxRate: 13,
+      taxAmount: 9360,
+      totalAmount: 81360,
+      status: "issued",
+      matchStatus: "matched",
+      source: "manual",
+    },
+    {
+      direction: "input",
+      invoiceType: "special_vat",
+      invoiceNumber: "033002600111",
+      issueDate: "2026-06-19",
+      counterparty: "宝钢材料代理",
+      taxId: "91310000MA1K000002",
+      orderId: "SO-2406-022",
+      goodsName: "冷轧板",
+      amountExTax: 43008.85,
+      taxRate: 13,
+      taxAmount: 5591.15,
+      totalAmount: 48600,
+      status: "pending_review",
+      matchStatus: "amount_mismatch",
+      source: "ocr",
+    },
+    {
+      direction: "input",
+      invoiceType: "ordinary_vat",
+      invoiceNumber: "24402000000987654321",
+      issueDate: "2026-06-25",
+      counterparty: "宁波阳极氧化厂",
+      taxId: "91330200MA1K000003",
+      orderId: "SO-2406-018",
+      goodsName: "表面处理服务",
+      amountExTax: 7169.81,
+      taxRate: 6,
+      taxAmount: 430.19,
+      totalAmount: 7600,
+      status: "verified",
+      matchStatus: "matched",
+      source: "excel",
+    },
+  ],
 };
 
 let state = structuredClone(defaultState);
@@ -217,6 +270,14 @@ const importTemplates = {
       ["SO-2406-100", "深圳样例客户", "批量单", "2026-06", "广东深圳", "300", "128000", "42000", "36000", "12000", "5800", "64000", "2026-07-20"],
     ],
   },
+  invoices: {
+    filename: "发票清单导入模板.csv",
+    fields: ["发票方向", "发票类型", "发票号码", "开票日期", "往来单位", "税号", "关联订单", "商品服务名称", "不含税金额", "税率", "税额", "价税合计", "发票状态"],
+    rows: [
+      ["销项", "数电票", "25502000000111111111", "2026-06-28", "苏州样例客户", "91320000MA00000001", "SO-2406-099", "钣金加工服务", "60000", "13", "7800", "67800", "已开票"],
+      ["进项", "增值税专票", "033002600222", "2026-06-28", "佛山板材供应商", "91440600MA00000002", "SO-2406-099", "钢板", "23008.85", "13", "2991.15", "26000", "待复核"],
+    ],
+  },
   payables: {
     filename: "应付账款导入模板.csv",
     fields: ["供应商", "费用类别", "应付金额", "已付金额", "付款日期", "发票状态"],
@@ -258,6 +319,59 @@ function typeName(type) {
 function typeTag(type) {
   const cls = type === "sample" ? "warn" : "";
   return `<span class="tag ${cls}">${typeName(type)}</span>`;
+}
+
+function directionName(direction) {
+  return { output: "销项", input: "进项" }[direction] || direction;
+}
+
+function invoiceStatusName(status) {
+  return {
+    imported: "已导入",
+    pending_review: "待复核",
+    verified: "已认证/已复核",
+    issued: "已开票",
+    abnormal: "异常",
+    red_lettered: "红冲",
+    voided: "作废",
+  }[status] || status;
+}
+
+function matchStatusName(status) {
+  return {
+    matched: "已匹配",
+    missing_order: "缺订单",
+    amount_mismatch: "金额不一致",
+    counterparty_mismatch: "往来单位不一致",
+    tax_amount_mismatch: "税额不一致",
+    duplicate_invoice: "疑似重复",
+  }[status] || status;
+}
+
+function mapInvoiceDirection(value) {
+  return value === "销项" ? "output" : "input";
+}
+
+function mapInvoiceType(value) {
+  if (value.includes("数电")) return "digital_e_invoice";
+  if (value.includes("专票")) return "special_vat";
+  if (value.includes("普票")) return "ordinary_vat";
+  return "other";
+}
+
+function mapInvoiceStatus(value) {
+  if (value.includes("已开")) return "issued";
+  if (value.includes("认证") || value.includes("已复核")) return "verified";
+  if (value.includes("异常")) return "abnormal";
+  if (value.includes("红")) return "red_lettered";
+  return "pending_review";
+}
+
+function inferInvoiceMatch(row) {
+  const order = state.orders.find((item) => item.id === row.orderId);
+  if (!order) return "missing_order";
+  if (order.customer !== row.counterparty && row.direction === "output") return "counterparty_mismatch";
+  return "matched";
 }
 
 function renderKpis() {
@@ -405,6 +519,64 @@ function renderInventory() {
       `;
     })
     .join("");
+}
+
+function renderTaxInvoices() {
+  const taxKpis = document.querySelector("#taxKpis");
+  const invoiceRows = document.querySelector("#invoiceRows");
+  const queue = document.querySelector("#invoiceMatchQueue");
+  if (!taxKpis || !invoiceRows || !queue) return;
+
+  const outputTax = state.invoices
+    .filter((invoice) => invoice.direction === "output")
+    .reduce((sum, invoice) => sum + Number(invoice.taxAmount || 0), 0);
+  const inputTax = state.invoices
+    .filter((invoice) => invoice.direction === "input")
+    .reduce((sum, invoice) => sum + Number(invoice.taxAmount || 0), 0);
+  const pendingReview = state.invoices.filter((invoice) => invoice.status === "pending_review").length;
+  const unmatched = state.invoices.filter((invoice) => invoice.matchStatus !== "matched").length;
+
+  taxKpis.innerHTML = [
+    ["销项税额", outputTax, "客户订单开票"],
+    ["进项税额", inputTax, "材料/外协/物流"],
+    ["待复核发票", pendingReview, "OCR/Excel 导入后确认"],
+    ["匹配异常", unmatched, "不自动入账"],
+  ]
+    .map(([label, value, note]) => `<article class="kpi"><span>${label}</span><strong>${typeof value === "number" && label.includes("税额") ? currency.format(value) : value}</strong><em>${note}</em></article>`)
+    .join("");
+
+  invoiceRows.innerHTML = state.invoices
+    .map((invoice) => {
+      const tagClass = invoice.matchStatus === "matched" ? "" : "warn";
+      return `
+        <tr>
+          <td>${directionName(invoice.direction)}</td>
+          <td><strong>${invoice.invoiceNumber}</strong><span class="subtext">${invoice.issueDate} / ${invoice.invoiceType}</span></td>
+          <td>${invoice.counterparty}<span class="subtext">${invoice.taxId}</span></td>
+          <td>${invoice.orderId || "未匹配"}</td>
+          <td class="money">${currency.format(invoice.amountExTax)}</td>
+          <td class="money">${currency.format(invoice.taxAmount)}<span class="subtext">${invoice.taxRate}%</span></td>
+          <td class="money">${currency.format(invoice.totalAmount)}</td>
+          <td><span class="tag ${tagClass}">${invoiceStatusName(invoice.status)} / ${matchStatusName(invoice.matchStatus)}</span></td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const items = state.invoices.filter((invoice) => invoice.status === "pending_review" || invoice.matchStatus !== "matched");
+  queue.innerHTML = items.length
+    ? items
+        .map((invoice) => `
+          <div class="mini-row">
+            <div>
+              <strong>${invoice.counterparty}</strong>
+              <span class="subtext">${directionName(invoice.direction)} / ${invoice.invoiceNumber} / ${invoice.orderId || "缺订单"}</span>
+            </div>
+            <span class="tag warn">${matchStatusName(invoice.matchStatus)}</span>
+          </div>
+        `)
+        .join("")
+    : `<div class="mini-row"><strong>暂无待复核</strong><span class="tag">正常</span></div>`;
 }
 
 function renderCaptureOrders() {
@@ -646,6 +818,28 @@ async function importCsvData() {
         paymentMethod: "银行转账",
       });
     });
+  } else if (type === "invoices") {
+    rows.forEach((row) => {
+      const invoice = {
+        direction: mapInvoiceDirection(row["发票方向"] || "进项"),
+        invoiceType: mapInvoiceType(row["发票类型"] || ""),
+        invoiceNumber: row["发票号码"] || `INV-${Date.now()}`,
+        issueDate: row["开票日期"] || "2026-07-01",
+        counterparty: row["往来单位"] || "未命名单位",
+        taxId: row["税号"] || "",
+        orderId: row["关联订单"] || "",
+        goodsName: row["商品服务名称"] || "",
+        amountExTax: Number(row["不含税金额"] || 0),
+        taxRate: Number(row["税率"] || 0),
+        taxAmount: Number(row["税额"] || 0),
+        totalAmount: Number(row["价税合计"] || 0),
+        status: mapInvoiceStatus(row["发票状态"] || "待复核"),
+        matchStatus: "matched",
+        source: "excel",
+      };
+      invoice.matchStatus = inferInvoiceMatch(invoice);
+      state.invoices.push(invoice);
+    });
   } else if (type === "payables") {
     rows.forEach((row) => {
       state.payables.push({
@@ -775,6 +969,7 @@ function renderAll() {
   renderCaptureOrders();
   renderCaptureHistory();
   renderImportFields();
+  renderTaxInvoices();
 }
 
 document.querySelector("#orderFilter").addEventListener("change", renderOrders);
