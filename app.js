@@ -273,6 +273,13 @@ const currency = new Intl.NumberFormat("zh-CN", {
   maximumFractionDigits: 0,
 });
 
+const preciseCurrency = new Intl.NumberFormat("zh-CN", {
+  style: "currency",
+  currency: "CNY",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 const sampleDocuments = {
   production: {
     docType: "production",
@@ -285,13 +292,13 @@ const sampleDocuments = {
     confidence: "86%",
     preview: "生产单 | 客户：瑞派 | 完成日期：2026-06-30 | 7 个零件",
     lineItems: [
-      { name: "板b", material: "Q235", thickness: "14mm", spec: "", qty: 20, process: "激光/孔位", unitPrice: "", amount: "" },
-      { name: "板b", material: "Q235", thickness: "14mm", spec: "", qty: 20, process: "激光/孔位", unitPrice: "", amount: "" },
-      { name: "加强板", material: "Q235", thickness: "12mm", spec: "", qty: 16, process: "激光/孔位", unitPrice: "", amount: "" },
-      { name: "收卷活动钩", material: "Q235", thickness: "12mm", spec: "", qty: 4, process: "激光/孔位", unitPrice: "", amount: "" },
-      { name: "收卷预备板", material: "Q235", thickness: "14mm", spec: "", qty: 4, process: "激光/孔位", unitPrice: "", amount: "" },
-      { name: "四层高架", material: "Q235", thickness: "16mm", spec: "", qty: 4, process: "激光/孔位", unitPrice: "", amount: "" },
-      { name: "稳泡圆调节座", material: "Q235", thickness: "10mm", spec: "", qty: 3, process: "激光/孔位", unitPrice: "", amount: "" },
+      { rowNo: 1, drawingNo: "", name: "板b", material: "Q235", thickness: "14mm", qty: 20, process: "15", holes: "4", points: "", pathMm: "1197", spec: "约 300*90", note: "蓝笔：6/7，红笔规格待复核" },
+      { rowNo: 2, drawingNo: "", name: "板b", material: "Q235", thickness: "14mm", qty: 20, process: "61", holes: "5", points: "", pathMm: "1364", spec: "约 250*220", note: "蓝笔：6/3，红笔规格待复核" },
+      { rowNo: 3, drawingNo: "", name: "加强板", material: "Q235", thickness: "12mm", qty: 16, process: "40", holes: "7", points: "", pathMm: "838", spec: "120*240", note: "手写标注：1/9" },
+      { rowNo: 4, drawingNo: "", name: "收卷活动钩", material: "Q235", thickness: "12mm", qty: 4, process: "31", holes: "7", points: "", pathMm: "415", spec: "120*230", note: "红笔规格待复核" },
+      { rowNo: 5, drawingNo: "", name: "收卷预备板", material: "Q235", thickness: "14mm", qty: 4, process: "106", holes: "7", points: "", pathMm: "874", spec: "280*190", note: "蓝笔：2/7" },
+      { rowNo: 6, drawingNo: "", name: "四层高架", material: "Q235", thickness: "16mm", qty: 4, process: "1", holes: "5", points: "", pathMm: "1608", spec: "约 310*250", note: "蓝笔：10/3，红笔规格待复核" },
+      { rowNo: 7, drawingNo: "", name: "稳泡圆调节座", material: "Q235", thickness: "10mm", qty: 3, process: "47", holes: "8", points: "", pathMm: "797", spec: "见手写尺寸", note: "蓝笔：0/6" },
     ],
   },
   receiving: {
@@ -305,12 +312,12 @@ const sampleDocuments = {
     confidence: "88%",
     preview: "收货/结算单 | 顶宏激光钣金 | 收货单位：德邦 | 合计 2595.60",
     lineItems: [
-      { name: "480*50-10", material: "Q235", thickness: "10mm", spec: "480*50", qty: 2, process: "穿孔4", unitPrice: 13.9, amount: 27.8 },
-      { name: "方范二次牵引槽1900", material: "Q235", thickness: "14mm", spec: "1010*480", qty: 2, process: "穿孔7+点29", unitPrice: 240, amount: 480 },
-      { name: "墙板连接板1900", material: "Q235", thickness: "12mm", spec: "480*80", qty: 2, process: "穿孔9", unitPrice: 24.1, amount: 48.2 },
-      { name: "层下镀锌收卷墙", material: "Q235", thickness: "14mm", spec: "2700*830", qty: 1, process: "穿孔8+点46", unitPrice: 926.2, amount: 926.2 },
-      { name: "层下镀锌收卷墙", material: "Q235", thickness: "14mm", spec: "2700*830", qty: 1, process: "穿孔10+点46", unitPrice: 926.6, amount: 926.6 },
-      { name: "收卷浮动笼整体板", material: "Q235", thickness: "18mm", spec: "591*110", qty: 4, process: "穿孔2+点1", unitPrice: 46.7, amount: 186.8 },
+      { name: "480*50-10", material: "Q235", thickness: "10mm", partSize: "480*50", holes: "4", meters: 1.31, sheetCount: 5.0, processingFee: 6.5, weight: 2, materialPrice: 7.4, netWeight: 1.7, scrapPrice: 0.6, qty: 2, unitPrice: 13.9, amount: 27.8 },
+      { name: "方范二次牵引槽1900", material: "Q235", thickness: "14mm", partSize: "1010*480", holes: "7+点29", meters: 4.631, sheetCount: 7.0, processingFee: 32.4, weight: 55.9, materialPrice: 207.6, netWeight: 47.9, scrapPrice: 16.0, qty: 2, unitPrice: 240, amount: 480 },
+      { name: "墙板连接板1900", material: "Q235", thickness: "12mm", partSize: "480*80", holes: "9", meters: 1.52, sheetCount: 6, processingFee: 9.1, weight: 4, materialPrice: 15, netWeight: 3.5, scrapPrice: 1.0, qty: 2, unitPrice: 24.1, amount: 48.2 },
+      { name: "层下镀锌收卷墙", material: "Q235", thickness: "14mm", partSize: "2700*830", holes: "8+点46", meters: 9.2, sheetCount: 7, processingFee: 64.4, weight: 258.6, materialPrice: 861.8, netWeight: 172.3, scrapPrice: 172.6, qty: 1, unitPrice: 926.2, amount: 926.2 },
+      { name: "层下镀锌收卷墙", material: "Q235", thickness: "14mm", partSize: "2700*830", holes: "10+点46", meters: 9.13, sheetCount: 7, processingFee: 64, weight: 258.6, materialPrice: 862.6, netWeight: 172.7, scrapPrice: 171.8, qty: 1, unitPrice: 926.6, amount: 926.6 },
+      { name: "收卷浮动笼整体板", material: "Q235", thickness: "18mm", partSize: "591*110", holes: "2+点1", meters: 1.68, sheetCount: 9, processingFee: 15.1, weight: 10.1, materialPrice: 31.6, netWeight: 5.7, scrapPrice: 8.8, qty: 4, unitPrice: 46.7, amount: 186.8 },
     ],
   },
   material: {
@@ -811,14 +818,50 @@ function renderCaptureLineItems(lines = currentCaptureLines) {
     return;
   }
 
+  const labels = {
+    rowNo: "序号",
+    drawingNo: "图号",
+    name: "名称",
+    material: "材料",
+    thickness: "板厚",
+    partSize: "零件尺寸",
+    spec: "规格",
+    qty: "数量",
+    process: "工艺",
+    holes: "孔/穿孔",
+    points: "点",
+    pathMm: "路径(mm)",
+    meters: "米数",
+    sheetCount: "镂单",
+    processingFee: "加工费",
+    weight: "重量",
+    materialPrice: "材料价格",
+    netWeight: "净重",
+    scrapPrice: "废料价格",
+    unitPrice: "单价",
+    amount: "金额",
+    note: "备注",
+  };
+  const moneyFields = new Set(["processingFee", "materialPrice", "scrapPrice", "unitPrice", "amount"]);
+  const formatValue = (key, value) => {
+    if (value === "" || value == null) return "待复核";
+    if (moneyFields.has(key) && value !== "") return preciseCurrency.format(Number(value || 0));
+    return value;
+  };
+
   target.innerHTML = lines
     .map((line) => `
-      <div class="mini-row">
-        <div>
+      <div class="capture-line-card">
+        <div class="capture-line-title">
           <strong>${line.name}</strong>
-          <span class="subtext">${line.material || "-"} / ${line.thickness || "-"} / ${line.spec || "-"} / ${line.process || "-"}</span>
+          <span class="tag">${line.qty || 0} 件${line.amount !== "" && line.amount != null ? ` / ${preciseCurrency.format(Number(line.amount || 0))}` : ""}</span>
         </div>
-        <span class="tag">${line.qty || 0} 件${line.amount !== "" ? ` / ${currency.format(Number(line.amount || 0))}` : ""}</span>
+        <div class="capture-field-grid">
+          ${Object.entries(labels)
+            .filter(([key]) => key in line)
+            .map(([key, label]) => `<span><em>${label}</em><strong>${formatValue(key, line[key])}</strong></span>`)
+            .join("")}
+        </div>
       </div>
     `)
     .join("");
