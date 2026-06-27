@@ -263,6 +263,7 @@ const defaultState = {
 };
 
 let state = structuredClone(defaultState);
+let currentCaptureLines = [];
 
 const today = new Date("2026-06-26T00:00:00+08:00");
 
@@ -273,6 +274,45 @@ const currency = new Intl.NumberFormat("zh-CN", {
 });
 
 const sampleDocuments = {
+  production: {
+    docType: "production",
+    orderId: "SO-2406-018",
+    party: "瑞派",
+    category: "生产单",
+    amount: 0,
+    date: "2026-06-26",
+    docNo: "顶宏激光生产单-20260626",
+    confidence: "86%",
+    preview: "生产单 | 客户：瑞派 | 完成日期：2026-06-30 | 7 个零件",
+    lineItems: [
+      { name: "板b", material: "Q235", thickness: "14mm", spec: "", qty: 20, process: "激光/孔位", unitPrice: "", amount: "" },
+      { name: "板b", material: "Q235", thickness: "14mm", spec: "", qty: 20, process: "激光/孔位", unitPrice: "", amount: "" },
+      { name: "加强板", material: "Q235", thickness: "12mm", spec: "", qty: 16, process: "激光/孔位", unitPrice: "", amount: "" },
+      { name: "收卷活动钩", material: "Q235", thickness: "12mm", spec: "", qty: 4, process: "激光/孔位", unitPrice: "", amount: "" },
+      { name: "收卷预备板", material: "Q235", thickness: "14mm", spec: "", qty: 4, process: "激光/孔位", unitPrice: "", amount: "" },
+      { name: "四层高架", material: "Q235", thickness: "16mm", spec: "", qty: 4, process: "激光/孔位", unitPrice: "", amount: "" },
+      { name: "稳泡圆调节座", material: "Q235", thickness: "10mm", spec: "", qty: 3, process: "激光/孔位", unitPrice: "", amount: "" },
+    ],
+  },
+  receiving: {
+    docType: "receiving",
+    orderId: "SO-2406-018",
+    party: "德邦",
+    category: "收货结算",
+    amount: 2595.6,
+    date: "2026-06-26",
+    docNo: "NO000000774",
+    confidence: "88%",
+    preview: "收货/结算单 | 顶宏激光钣金 | 收货单位：德邦 | 合计 2595.60",
+    lineItems: [
+      { name: "480*50-10", material: "Q235", thickness: "10mm", spec: "480*50", qty: 2, process: "穿孔4", unitPrice: 13.9, amount: 27.8 },
+      { name: "方范二次牵引槽1900", material: "Q235", thickness: "14mm", spec: "1010*480", qty: 2, process: "穿孔7+点29", unitPrice: 240, amount: 480 },
+      { name: "墙板连接板1900", material: "Q235", thickness: "12mm", spec: "480*80", qty: 2, process: "穿孔9", unitPrice: 24.1, amount: 48.2 },
+      { name: "层下镀锌收卷墙", material: "Q235", thickness: "14mm", spec: "2700*830", qty: 1, process: "穿孔8+点46", unitPrice: 926.2, amount: 926.2 },
+      { name: "层下镀锌收卷墙", material: "Q235", thickness: "14mm", spec: "2700*830", qty: 1, process: "穿孔10+点46", unitPrice: 926.6, amount: 926.6 },
+      { name: "收卷浮动笼整体板", material: "Q235", thickness: "18mm", spec: "591*110", qty: 4, process: "穿孔2+点1", unitPrice: 46.7, amount: 186.8 },
+    ],
+  },
   material: {
     docType: "payable",
     orderId: "SO-2406-022",
@@ -283,6 +323,10 @@ const sampleDocuments = {
     docNo: "INV-20260626-126",
     confidence: "96%",
     preview: "增值税发票 | 冷轧板 / 镀锌板 | 订单 SO-2406-022",
+    lineItems: [
+      { name: "冷轧板", material: "SPCC", thickness: "1.5mm", spec: "1220*2440", qty: 1200, process: "材料入库", unitPrice: 5.8, amount: 6960 },
+      { name: "镀锌板", material: "DX51D", thickness: "1.2mm", spec: "1000*2000", qty: 900, process: "材料入库", unitPrice: 6.4, amount: 5760 },
+    ],
   },
   surface: {
     docType: "cost",
@@ -294,6 +338,10 @@ const sampleDocuments = {
     docNo: "OUT-20260625-031",
     confidence: "93%",
     preview: "外协结算单 | 阳极氧化 / 喷粉 | 订单 SO-2406-018",
+    lineItems: [
+      { name: "外壳表面处理", material: "铝件", thickness: "", spec: "喷粉黑砂", qty: 260, process: "喷粉", unitPrice: 18, amount: 4680 },
+      { name: "支架表面处理", material: "铝件", thickness: "", spec: "阳极氧化", qty: 160, process: "阳极", unitPrice: 18.25, amount: 2920 },
+    ],
   },
   receipt: {
     docType: "receipt",
@@ -305,6 +353,7 @@ const sampleDocuments = {
     docNo: "BOC-20260626-442",
     confidence: "91%",
     preview: "银行回单 | 对公转账 | 订单 SO-2405-041",
+    lineItems: [],
   },
 };
 
@@ -754,6 +803,27 @@ function renderCaptureHistory() {
     .join("");
 }
 
+function renderCaptureLineItems(lines = currentCaptureLines) {
+  const target = document.querySelector("#captureLineItems");
+  if (!target) return;
+  if (!lines.length) {
+    target.innerHTML = `<div class="mini-row"><strong>暂无明细</strong><span class="subtext">上传生产单、收货单或选择样例后显示</span></div>`;
+    return;
+  }
+
+  target.innerHTML = lines
+    .map((line) => `
+      <div class="mini-row">
+        <div>
+          <strong>${line.name}</strong>
+          <span class="subtext">${line.material || "-"} / ${line.thickness || "-"} / ${line.spec || "-"} / ${line.process || "-"}</span>
+        </div>
+        <span class="tag">${line.qty || 0} 件${line.amount !== "" ? ` / ${currency.format(Number(line.amount || 0))}` : ""}</span>
+      </div>
+    `)
+    .join("");
+}
+
 function renderImportFields() {
   const type = document.querySelector("#importType")?.value || "orders";
   const target = document.querySelector("#importFields");
@@ -784,7 +854,9 @@ function setRecognition(values) {
     const field = form.elements[key];
     if (field) field.value = value;
   });
-  document.querySelector("#documentPreview").innerHTML = `<div class="upload-copy"><strong>${values.preview}</strong><span>已提取金额、日期、往来单位、关联订单</span></div>`;
+  currentCaptureLines = values.lineItems || [];
+  renderCaptureLineItems();
+  document.querySelector("#documentPreview").innerHTML = `<div class="upload-copy"><strong>${values.preview}</strong><span>已提取抬头、日期、金额和表格明细，需人工复核</span></div>`;
   document.querySelector("#captureStatus").textContent = "已识别，待确认";
 }
 
@@ -793,14 +865,18 @@ function applyCapture() {
   const values = Object.fromEntries(formData.entries());
   const amount = Number(values.amount || 0);
   const order = state.orders.find((item) => item.id === values.orderId);
-  if (!order || !amount) {
-    document.querySelector("#captureStatus").textContent = "请确认订单和金额";
+  if (!order) {
+    document.querySelector("#captureStatus").textContent = "请确认关联订单";
+    return;
+  }
+  if (!amount && !["production"].includes(values.docType)) {
+    document.querySelector("#captureStatus").textContent = "请确认金额";
     return;
   }
 
   if (values.docType === "receipt") {
     order.received += amount;
-  } else if (values.docType === "payable") {
+  } else if (values.docType === "payable" || values.docType === "receiving") {
     state.payables.unshift({
       supplier: values.party,
       category: values.category,
@@ -809,18 +885,26 @@ function applyCapture() {
       dueDate: values.date,
       invoice: values.docNo ? "已识别" : "待复核",
     });
-  } else {
+  } else if (values.docType === "cost") {
     const key = categoryCostKey[values.category] || "platform";
     order.costs[key] = Number(order.costs[key] || 0) + amount;
   }
 
+  const typeName = {
+    receipt: "客户收款",
+    cost: "订单成本",
+    production: "生产单明细",
+    receiving: "收货结算",
+    payable: "供应商应付",
+  }[values.docType] || "供应商应付";
+
   state.captureHistory.unshift({
     docNo: values.docNo || `DOC-${Date.now()}`,
-    type: values.docType === "receipt" ? "客户收款" : values.docType === "cost" ? "订单成本" : "供应商应付",
+    type: typeName,
     party: values.party,
     orderId: values.orderId,
     amount,
-    status: "已写入",
+    status: currentCaptureLines.length ? `已写入/${currentCaptureLines.length}行` : "已写入",
   });
 
   document.querySelector("#captureStatus").textContent = "已写入财务数据";
@@ -837,10 +921,11 @@ function previewUpload(file) {
   } else {
     preview.innerHTML = `<div class="upload-copy"><strong>${file.name}</strong><span>PDF 已接收，等待识别</span></div>`;
   }
+  const scenario = file.name.includes("290e") || file.name.includes("收货") ? "receiving" : "production";
   setRecognition({
-    ...sampleDocuments.material,
+    ...sampleDocuments[scenario],
     docNo: `SCAN-${String(Date.now()).slice(-6)}`,
-    preview: `${file.name} | 模拟识别为材料发票`,
+    preview: `${file.name} | 模拟识别为${scenario === "receiving" ? "收货/结算单" : "生产单"}`,
   });
 }
 
@@ -1264,6 +1349,7 @@ function renderAll() {
   renderQuote();
   renderCaptureOrders();
   renderCaptureHistory();
+  renderCaptureLineItems();
   renderImportFields();
   renderTaxInvoices();
 }

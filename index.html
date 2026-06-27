@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=targeted-import-20260626" />
+    <link rel="stylesheet" href="./styles.css?v=doc-capture-20260627" />
   </head>
   <body>
     <aside class="sidebar">
@@ -215,7 +215,7 @@
         <div class="section-title">
           <div>
             <p class="eyebrow">Capture</p>
-            <h2>拍照/上传票据识别</h2>
+            <h2>拍照/上传单据识别</h2>
           </div>
           <span id="captureStatus" class="status" aria-live="polite"></span>
         </div>
@@ -224,11 +224,13 @@
             <div class="upload-box">
               <input id="documentInput" type="file" accept="image/*,.pdf" capture="environment" />
               <div class="upload-copy">
-                <strong>上传发票、物流单、银行回单</strong>
-                <span>手机可直接拍照；当前原型用样例识别结果演示字段回填</span>
+                <strong>上传生产单、收货单、发票、银行回单</strong>
+                <span>手机可直接拍照；先识别抬头、日期、金额和表格明细，再人工确认</span>
               </div>
             </div>
             <div class="quick-actions">
+              <button class="doc-sample" type="button" data-doc="production">识别生产单</button>
+              <button class="doc-sample" type="button" data-doc="receiving">识别收货单</button>
               <button class="doc-sample" type="button" data-doc="material">识别材料发票</button>
               <button class="doc-sample" type="button" data-doc="surface">识别外协发票</button>
               <button class="doc-sample" type="button" data-doc="receipt">识别银行回单</button>
@@ -245,6 +247,8 @@
             </div>
             <form class="recognition-form" id="recognitionForm">
               <label>单据类型<select name="docType">
+                <option value="production">生产单</option>
+                <option value="receiving">收货/结算单</option>
                 <option value="payable">供应商应付</option>
                 <option value="receipt">客户收款</option>
                 <option value="cost">订单成本</option>
@@ -257,6 +261,8 @@
                 <option value="物流">物流</option>
                 <option value="CNC 外协">CNC 外协</option>
                 <option value="客户收款">客户收款</option>
+                <option value="生产单">生产单</option>
+                <option value="收货结算">收货结算</option>
               </select></label>
               <label>金额<input name="amount" type="number" step="0.01" value="" /></label>
               <label>日期<input name="date" type="date" value="2026-06-26" /></label>
@@ -270,6 +276,11 @@
 
           <section class="panel">
             <div class="panel-head">
+              <h2>表格明细待确认</h2>
+              <span>零件、材料、厚度、数量、单价</span>
+            </div>
+            <div class="mini-table capture-lines" id="captureLineItems"></div>
+            <div class="panel-head compact-head">
               <h2>最近识别记录</h2>
               <span>保留待复核痕迹</span>
             </div>
@@ -438,7 +449,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=targeted-import-20260626"></script>
-    <script src="./app.js?v=targeted-import-20260626"></script>
+    <script src="./xlsx.full.min.js?v=doc-capture-20260627"></script>
+    <script src="./app.js?v=doc-capture-20260627"></script>
   </body>
 </html>
