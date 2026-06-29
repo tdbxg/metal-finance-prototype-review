@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>金属加工订单财务闭环原型</title>
+    <link rel="stylesheet" href="./styles.css?v=enterprise-switcher-20260629" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        <div>
+          <strong>金属加工财务</strong>
+          <span>订单利润核算原型</span>
+        </div>
+      </div>
+      <nav aria-label="主导航">
+        <a class="active" href="#dashboard">总览</a>
+        <a href="#customers">客户档案</a>
+        <a href="#orders">订单利润</a>
+        <a href="#quote">报价核算</a>
+        <a href="#capture">票据识别</a>
+        <a href="#import">Excel导入</a>
+        <a href="#tax">税务发票</a>
+        <a href="#receivables">应收应付</a>
+        <a href="#inventory">材料库存</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="enterpriseTagline">按图定制 / 样品 / 小批量 / 国内订单</p>
+          <h1 id="enterpriseTitle">订单财务闭环工作台</h1>
+        </div>
+        <div class="toolbar">
+          <label class="enterprise-switch">企业
+            <select id="enterpriseSelect" aria-label="选择企业">
+              <option value="sheetMetal">顶宏激光钣金</option>
+              <option value="cncPrecision">华东 CNC 精密加工</option>
+              <option value="surfaceCoating">苏州表面处理外协</option>
+            </select>
+          </label>
+          <button id="seedBtn" type="button" title="恢复样例数据">恢复样例</button>
+          <button id="exportBtn" type="button" title="导出当前订单数据">导出 CSV</button>
+          <span id="exportStatus" class="status" aria-live="polite"></span>
+        </div>
+      </header>
+
+      <section id="dashboard" class="section">
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>月度利润</h2>
+              <span>收入、成本、毛利</span>
+            </div>
+            <div class="bars" id="monthlyBars"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>客户利润排行</h2>
+              <span>按毛利金额</span>
+            </div>
+            <div class="rank-list" id="customerRank"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="customers" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Customers</p>
+            <h2>客户档案</h2>
+          </div>
+          <div class="inline-import" data-import-type="customers">
+            <button type="button" data-template-type="customers">客户模板</button>
+            <label class="file-pill">选择文件<input id="customerImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="customers" data-input="customerImportFile" data-status="customerImportStatus">导入客户</button>
+            <span id="customerImportStatus" class="status" aria-live="polite">支持高频更新</span>
+          </div>
+        </div>
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>客户台账</h2>
+              <span>名称、税号、联系人、账期、更新时间</span>
+            </div>
+            <div class="table-wrap compact-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>客户</th>
+                    <th>税号</th>
+                    <th>联系人</th>
+                    <th>手机</th>
+                    <th>地区</th>
+                    <th>等级</th>
+                    <th>账期</th>
+                    <th>状态</th>
+                    <th>最近更新</th>
+                  </tr>
+                </thead>
+                <tbody id="customerRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>更新提醒</h2>
+              <span>频繁变更信息</span>
+            </div>
+            <div class="mini-table" id="customerUpdateList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="orders" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Order P&L</p>
+            <h2>订单利润表</h2>
+          </div>
+          <label class="filter">
+            <span>订单类型</span>
+            <select id="orderFilter">
+              <option value="all">全部</option>
+              <option value="small_batch">小批量</option>
+              <option value="sample">样品单</option>
+              <option value="batch">批量单</option>
+            </select>
+          </label>
+          <div class="inline-import" data-import-type="orders">
+            <button type="button" data-template-type="orders">订单模板</button>
+            <label class="file-pill">选择文件<input id="orderImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="orders" data-input="orderImportFile" data-status="orderImportStatus">导入订单</button>
+            <span id="orderImportStatus" class="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>订单</th>
+                <th>客户</th>
+                <th>类型</th>
+                <th>交付区域</th>
+                <th>收入</th>
+                <th>成本</th>
+                <th>毛利</th>
+                <th>毛利率</th>
+                <th>已收</th>
+                <th>未收</th>
+              </tr>
+            </thead>
+            <tbody id="orderRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="quote" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Quotation</p>
+            <h2>多零件报价单</h2>
+          </div>
+          <div class="toolbar">
+            <button id="addQuoteLineBtn" type="button">新增零件</button>
+            <button id="quoteBtn" type="button">重新计算</button>
+          </div>
+        </div>
+        <div class="quote-layout">
+          <section class="panel quote-editor">
+            <div class="quote-meta">
+              <label>客户<input id="quoteCustomer" list="customerOptions" value="苏州恒远自动化" /></label>
+              <datalist id="customerOptions"></datalist>
+              <label>报价单号<input id="quoteNo" value="QT-202606-001" /></label>
+              <label>管理费用 %<input id="quoteOverhead" type="number" step="1" value="12" /></label>
+              <label>目标利润率 %<input id="quoteMargin" type="number" step="1" value="28" /></label>
+            </div>
+            <div class="table-wrap quote-lines-wrap">
+              <table class="quote-lines-table">
+                <thead>
+                  <tr>
+                    <th>图号/零件</th>
+                    <th>数量</th>
+                    <th>材料单价/kg</th>
+                    <th>重量kg</th>
+                    <th>利用率%</th>
+                    <th>切割分</th>
+                    <th>折弯</th>
+                    <th>CNC时</th>
+                    <th>焊接时</th>
+                    <th>表处</th>
+                    <th>包装物流</th>
+                    <th>单价</th>
+                    <th>总价</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="quoteLineRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel quote-output">
+            <div class="panel-head">
+              <h2>报价汇总</h2>
+              <span>内部成本 / 客户报价</span>
+            </div>
+            <div class="quote-summary" id="quoteSummary"></div>
+            <div class="panel-head compact-head">
+              <h2>整单阶梯预估</h2>
+              <span>10 / 50 / 100 / 500 套</span>
+            </div>
+            <div id="quoteResults"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="capture" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Capture</p>
+            <h2>拍照/上传单据识别</h2>
+          </div>
+          <span id="captureStatus" class="status" aria-live="polite"></span>
+        </div>
+        <div class="capture-layout">
+          <section class="panel upload-panel">
+            <div class="upload-box">
+              <input id="documentInput" type="file" accept="image/*,.pdf" capture="environment" />
+              <div class="upload-copy">
+                <strong>上传生产单、收货单、发票、银行回单</strong>
+                <span>手机可直接拍照；先识别抬头、日期、金额和表格明细，再人工确认</span>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <button class="doc-sample" type="button" data-doc="production">识别生产单</button>
+              <button class="doc-sample" type="button" data-doc="receiving">识别收货单</button>
+              <button class="doc-sample" type="button" data-doc="material">识别材料发票</button>
+              <button class="doc-sample" type="button" data-doc="surface">识别外协发票</button>
+              <button class="doc-sample" type="button" data-doc="receipt">识别银行回单</button>
+            </div>
+            <div class="preview" id="documentPreview">
+              <span>等待上传或选择样例</span>
+            </div>
+          </section>
+
+          <section class="panel recognition-panel">
+            <div class="panel-head">
+              <h2>识别结果确认</h2>
+              <span>确认后写入系统</span>
+            </div>
+            <form class="recognition-form" id="recognitionForm">
+              <label>单据类型<select name="docType">
+                <option value="production">生产单</option>
+                <option value="receiving">收货/结算单</option>
+                <option value="payable">供应商应付</option>
+                <option value="receipt">客户收款</option>
+                <option value="cost">订单成本</option>
+              </select></label>
+              <label>关联订单<select name="orderId" id="captureOrder"></select></label>
+              <label>往来单位<input name="party" value="" placeholder="客户或供应商" /></label>
+              <label>费用类别<select name="category">
+                <option value="材料">材料</option>
+                <option value="表面处理">表面处理</option>
+                <option value="物流">物流</option>
+                <option value="CNC 外协">CNC 外协</option>
+                <option value="客户收款">客户收款</option>
+                <option value="生产单">生产单</option>
+                <option value="收货结算">收货结算</option>
+              </select></label>
+              <label>金额<input name="amount" type="number" step="0.01" value="" /></label>
+              <label>日期<input name="date" type="date" value="2026-06-26" /></label>
+              <label>发票/回单号<input name="docNo" value="" /></label>
+              <label>置信度<input name="confidence" value="" readonly /></label>
+            </form>
+            <div class="recognition-actions">
+              <button id="applyCaptureBtn" type="button">写入财务数据</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>表格明细待确认</h2>
+              <span>工艺、尺寸、重量、加工费、材料价、单价、金额</span>
+            </div>
+            <div class="mini-table capture-lines" id="captureLineItems"></div>
+            <div class="panel-head compact-head">
+              <h2>最近识别记录</h2>
+              <span>保留待复核痕迹</span>
+            </div>
+            <div class="mini-table" id="captureHistory"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="import" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Import</p>
+            <h2>Excel/CSV 批量导入</h2>
+          </div>
+          <span id="importStatus" class="status" aria-live="polite"></span>
+        </div>
+        <div class="import-layout">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>导入数据</h2>
+              <span>支持 .xlsx / .xls / .csv</span>
+            </div>
+            <form class="import-form" id="importForm">
+              <label>数据类型<select id="importType" name="importType">
+                <option value="customers">客户档案</option>
+                <option value="orders">订单利润数据</option>
+                <option value="invoices">发票清单</option>
+                <option value="payables">应付账款</option>
+                <option value="inventory">材料库存</option>
+              </select></label>
+              <label>选择文件<input id="csvInput" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            </form>
+            <div class="import-actions">
+              <button id="downloadTemplateBtn" type="button">下载模板</button>
+              <button id="importCsvBtn" type="button">导入数据</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>字段要求</h2>
+              <span>按模板列名填写</span>
+            </div>
+            <div class="mini-table" id="importFields"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>导入预览</h2>
+              <span>显示前 5 行</span>
+            </div>
+            <div class="mini-table" id="importPreview"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="tax" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Tax Invoice</p>
+            <h2>税务发票管理</h2>
+          </div>
+          <div class="inline-import" data-import-type="invoices">
+            <button type="button" data-template-type="invoices">发票模板</button>
+            <label class="file-pill">选择文件<input id="invoiceImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="invoices" data-input="invoiceImportFile" data-status="invoiceImportStatus">导入发票</button>
+            <span id="invoiceImportStatus" class="status" aria-live="polite">需财务复核</span>
+          </div>
+        </div>
+        <div class="tax-grid" id="taxKpis"></div>
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>发票台账</h2>
+              <span>销项、进项、数电票、匹配状态</span>
+            </div>
+            <div class="table-wrap compact-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>方向</th>
+                    <th>发票号</th>
+                    <th>往来单位</th>
+                    <th>关联订单</th>
+                    <th>不含税金额</th>
+                    <th>税额</th>
+                    <th>价税合计</th>
+                    <th>状态</th>
+                  </tr>
+                </thead>
+                <tbody id="invoiceRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>待复核匹配</h2>
+              <span>不自动入账</span>
+            </div>
+            <div class="mini-table" id="invoiceMatchQueue"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="receivables" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">AR / AP</p>
+            <h2>应收应付提醒</h2>
+          </div>
+          <div class="inline-import" data-import-type="payables">
+            <button type="button" data-template-type="payables">应付模板</button>
+            <label class="file-pill">选择文件<input id="payableImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="payables" data-input="payableImportFile" data-status="payableImportStatus">导入应付</button>
+            <span id="payableImportStatus" class="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>应收账款</h2>
+              <span>定金、尾款、逾期</span>
+            </div>
+            <div class="mini-table" id="arList"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>应付账款</h2>
+              <span>材料、外协、物流</span>
+            </div>
+            <div class="mini-table" id="apList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="inventory" class="section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Inventory</p>
+            <h2>材料库存金额</h2>
+          </div>
+          <div class="inline-import" data-import-type="inventory">
+            <button type="button" data-template-type="inventory">库存模板</button>
+            <label class="file-pill">选择文件<input id="inventoryImportFile" type="file" accept=".xlsx,.xls,.csv,text/csv" /></label>
+            <button class="primary" type="button" data-quick-import="inventory" data-input="inventoryImportFile" data-status="inventoryImportStatus">导入库存</button>
+            <span id="inventoryImportStatus" class="status" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>材料</th>
+                <th>材质</th>
+                <th>厚度</th>
+                <th>规格</th>
+                <th>库存</th>
+                <th>单价</th>
+                <th>库存金额</th>
+                <th>损耗率</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="./xlsx.full.min.js?v=enterprise-switcher-20260629"></script>
+    <script src="./app.js?v=enterprise-switcher-20260629"></script>
+  </body>
+</html>
