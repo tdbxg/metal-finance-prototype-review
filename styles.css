@@ -505,6 +505,7 @@ tbody tr:hover {
 }
 
 .quote-meta input,
+.quote-meta select,
 .quote-lines-table input,
 .quote-lines-table select {
   width: 100%;

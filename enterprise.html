@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=customer-material-options-20260629" />
+    <link rel="stylesheet" href="./styles.css?v=quote-customer-select-20260629" />
   </head>
   <body>
     <aside class="sidebar">
@@ -173,8 +173,7 @@
         <div class="quote-layout">
           <section class="panel quote-editor">
             <div class="quote-meta">
-              <label>客户<input id="quoteCustomer" list="customerOptions" value="苏州恒远自动化" /></label>
-              <datalist id="customerOptions"></datalist>
+              <label>客户<select id="quoteCustomer"></select></label>
               <label>报价单号<input id="quoteNo" value="QT-202606-001" /></label>
               <label>管理费用 %<input id="quoteOverhead" type="number" step="1" value="12" /></label>
               <label>目标利润率 %<input id="quoteMargin" type="number" step="1" value="28" /></label>
@@ -457,7 +456,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=customer-material-options-20260629"></script>
-    <script src="./app.js?v=customer-material-options-20260629"></script>
+    <script src="./xlsx.full.min.js?v=quote-customer-select-20260629"></script>
+    <script src="./app.js?v=quote-customer-select-20260629"></script>
   </body>
 </html>

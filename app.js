@@ -772,9 +772,11 @@ function renderCustomerRank() {
 function renderCustomers() {
   const rows = document.querySelector("#customerRows");
   const updates = document.querySelector("#customerUpdateList");
-  const options = document.querySelector("#customerOptions");
-  if (options) {
-    options.innerHTML = state.customers.map((customer) => `<option value="${customer.name}"></option>`).join("");
+  const quoteCustomer = document.querySelector("#quoteCustomer");
+  if (quoteCustomer) {
+    const previousValue = quoteCustomer.value || state.customers[0]?.name || "";
+    quoteCustomer.innerHTML = state.customers.map((customer) => `<option value="${customer.name}">${customer.name} / ${customer.region} / ${customer.paymentTerm}</option>`).join("");
+    quoteCustomer.value = state.customers.some((customer) => customer.name === previousValue) ? previousValue : state.customers[0]?.name || "";
   }
   if (!rows || !updates) return;
 
@@ -1594,7 +1596,7 @@ document.querySelector("#quoteBtn").addEventListener("click", renderQuote);
 document.querySelector("#addQuoteLineBtn").addEventListener("click", addQuoteLine);
 document.querySelector("#quoteOverhead").addEventListener("input", renderQuote);
 document.querySelector("#quoteMargin").addEventListener("input", renderQuote);
-document.querySelector("#quoteCustomer").addEventListener("input", renderQuote);
+document.querySelector("#quoteCustomer").addEventListener("change", renderQuote);
 document.querySelector("#quoteNo").addEventListener("input", renderQuote);
 document.querySelector("#quoteLineRows").addEventListener("change", (event) => {
   const index = event.target.dataset.quoteIndex;
