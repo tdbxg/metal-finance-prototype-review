@@ -52,6 +52,58 @@ const defaultState = {
       updatedAt: "2026-06-10",
       note: "医疗件需关注质检资料",
     },
+    {
+      name: "南京德邦输送设备",
+      taxId: "91320100MA00000005",
+      contact: "周经理",
+      phone: "13800000005",
+      region: "江苏南京",
+      address: "南京市江宁区样例路 58 号",
+      level: "B",
+      paymentTerm: "月结30天",
+      status: "合作中",
+      updatedAt: "2026-06-23",
+      note: "输送线钣金件、护罩件",
+    },
+    {
+      name: "无锡德远包装机械",
+      taxId: "91320200MA00000006",
+      contact: "孙工",
+      phone: "13800000006",
+      region: "江苏无锡",
+      address: "无锡市锡山区样例路 36 号",
+      level: "A",
+      paymentTerm: "月结45天",
+      status: "合作中",
+      updatedAt: "2026-06-19",
+      note: "批量外壳、机架订单",
+    },
+    {
+      name: "常州精工自动化",
+      taxId: "91320400MA00000007",
+      contact: "钱工",
+      phone: "13800000007",
+      region: "江苏常州",
+      address: "常州市新北区样例路 21 号",
+      level: "C",
+      paymentTerm: "预付30%",
+      status: "报价中",
+      updatedAt: "2026-06-17",
+      note: "新客户，价格敏感",
+    },
+    {
+      name: "宁波科创设备",
+      taxId: "91330200MA00000008",
+      contact: "吴经理",
+      phone: "13800000008",
+      region: "浙江宁波",
+      address: "宁波市北仑区样例路 19 号",
+      level: "B",
+      paymentTerm: "款到发货",
+      status: "合作中",
+      updatedAt: "2026-06-12",
+      note: "样品单较多",
+    },
   ],
   orders: [
     {
@@ -302,6 +354,9 @@ function buildEnterpriseState(enterpriseId) {
     nextState.customers = [
       { name: "无锡智造装备", taxId: "91320200MA00001001", contact: "刘经理", phone: "13900001001", region: "江苏无锡", address: "无锡市新吴区样例路 9 号", level: "A", paymentTerm: "月结30天", status: "合作中", updatedAt: "2026-06-26", note: "铝件腔体和工装夹具较多" },
       { name: "常州新能源部件", taxId: "91320400MA00001002", contact: "沈工", phone: "13900001002", region: "江苏常州", address: "常州市武进区样例路 22 号", level: "B", paymentTerm: "预付40%", status: "打样中", updatedAt: "2026-06-22", note: "关注材料牌号和检验报告" },
+      { name: "苏州医疗器械科技", taxId: "91320500MA00001003", contact: "顾工", phone: "13900001003", region: "江苏苏州", address: "苏州市吴中区样例路 11 号", level: "A", paymentTerm: "月结45天", status: "合作中", updatedAt: "2026-06-20", note: "不锈钢精密件、质检要求高" },
+      { name: "上海半导体设备", taxId: "91310000MA00001004", contact: "赵经理", phone: "13900001004", region: "上海", address: "上海市浦东新区样例路 80 号", level: "A", paymentTerm: "预付30%尾款发货", status: "合作中", updatedAt: "2026-06-18", note: "铝合金腔体、阳极处理" },
+      { name: "昆山机器人夹具厂", taxId: "91320583MA00001005", contact: "黄工", phone: "13900001005", region: "江苏昆山", address: "昆山市开发区样例路 17 号", level: "B", paymentTerm: "月结30天", status: "报价中", updatedAt: "2026-06-15", note: "夹具工装、小批量多品种" },
     ];
     nextState.orders = nextState.orders.slice(0, 3).map((order, index) => ({
       ...order,
@@ -326,6 +381,9 @@ function buildEnterpriseState(enterpriseId) {
     nextState.customers = [
       { name: "苏州钣金配套厂", taxId: "91320500MA00002001", contact: "周经理", phone: "13900002001", region: "江苏苏州", address: "苏州市相城区样例路 16 号", level: "A", paymentTerm: "月结45天", status: "合作中", updatedAt: "2026-06-25", note: "喷粉黑砂、白砂为主" },
       { name: "上海设备外壳厂", taxId: "91310000MA00002002", contact: "吴工", phone: "13900002002", region: "上海", address: "上海市松江区样例路 38 号", level: "B", paymentTerm: "月结30天", status: "合作中", updatedAt: "2026-06-20", note: "阳极氧化件较多" },
+      { name: "昆山机箱机柜厂", taxId: "91320583MA00002003", contact: "蒋经理", phone: "13900002003", region: "江苏昆山", address: "昆山市张浦镇样例路 26 号", level: "A", paymentTerm: "月结30天", status: "合作中", updatedAt: "2026-06-21", note: "喷粉订单稳定" },
+      { name: "太仓自动化设备厂", taxId: "91320585MA00002004", contact: "郑工", phone: "13900002004", region: "江苏太仓", address: "太仓市陆渡样例路 6 号", level: "B", paymentTerm: "预付20%", status: "打样中", updatedAt: "2026-06-16", note: "样件颜色确认频繁" },
+      { name: "嘉兴新能源外壳厂", taxId: "91330400MA00002005", contact: "许经理", phone: "13900002005", region: "浙江嘉兴", address: "嘉兴市南湖区样例路 31 号", level: "B", paymentTerm: "月结45天", status: "报价中", updatedAt: "2026-06-14", note: "批量阳极氧化询价" },
     ];
     nextState.orders = nextState.orders.slice(0, 3).map((order, index) => ({
       ...order,
@@ -488,6 +546,7 @@ const defaultQuoteLines = [
   {
     part: "BRK-001 支架",
     qty: 100,
+    materialName: "冷轧板",
     materialPrice: 18,
     weight: 1.8,
     utilization: 82,
@@ -501,6 +560,7 @@ const defaultQuoteLines = [
   {
     part: "COV-002 外壳",
     qty: 100,
+    materialName: "304 不锈钢板",
     materialPrice: 16.8,
     weight: 2.4,
     utilization: 78,
@@ -513,7 +573,18 @@ const defaultQuoteLines = [
   },
 ];
 
-let quoteLines = structuredClone(defaultQuoteLines);
+function defaultQuoteLinesForInventory() {
+  return defaultQuoteLines.map((line, index) => {
+    const material = state.inventory[index] || state.inventory[0];
+    return {
+      ...line,
+      materialName: material?.name || line.materialName || "",
+      materialPrice: Number(material?.price || line.materialPrice || 0),
+    };
+  });
+}
+
+let quoteLines = defaultQuoteLinesForInventory();
 
 function sumObject(obj) {
   return Object.values(obj).reduce((sum, value) => sum + Number(value || 0), 0);
@@ -1317,14 +1388,20 @@ function quoteLineResult(line, settings, scaleDiscount = 1) {
 function updateQuoteLine(index, key, value) {
   const numericKeys = new Set(["qty", "materialPrice", "weight", "utilization", "cutMinutes", "bends", "cncHours", "weldHours", "surface", "packingLogistics"]);
   quoteLines[index][key] = numericKeys.has(key) ? Number(value || 0) : value;
+  if (key === "materialName") {
+    const material = state.inventory.find((item) => item.name === value);
+    if (material) quoteLines[index].materialPrice = Number(material.price || 0);
+  }
   renderQuote();
 }
 
 function addQuoteLine() {
+  const material = state.inventory[0] || { name: "", price: 18 };
   quoteLines.push({
     part: `NEW-${String(quoteLines.length + 1).padStart(3, "0")} 新零件`,
     qty: 50,
-    materialPrice: 18,
+    materialName: material.name,
+    materialPrice: Number(material.price || 18),
     weight: 1,
     utilization: 82,
     cutMinutes: 3,
@@ -1344,6 +1421,9 @@ function removeQuoteLine(index) {
 }
 
 function renderQuoteLines(settings) {
+  const materialOptions = state.inventory
+    .map((material) => `<option value="${material.name}">${material.name} / ${material.material} / ${material.thickness} / ${Number(material.price || 0).toFixed(2)}元/${material.unit}</option>`)
+    .join("");
   document.querySelector("#quoteLineRows").innerHTML = quoteLines
     .map((line, index) => {
       const result = quoteLineResult(line, settings);
@@ -1351,6 +1431,7 @@ function renderQuoteLines(settings) {
         <tr>
           <td><input value="${line.part}" data-quote-index="${index}" data-quote-key="part" /></td>
           <td><input type="number" value="${line.qty}" data-quote-index="${index}" data-quote-key="qty" /></td>
+          <td><select data-quote-index="${index}" data-quote-key="materialName"><option value="">手动填写</option>${materialOptions}</select></td>
           <td><input type="number" step="0.01" value="${line.materialPrice}" data-quote-index="${index}" data-quote-key="materialPrice" /></td>
           <td><input type="number" step="0.01" value="${line.weight}" data-quote-index="${index}" data-quote-key="weight" /></td>
           <td><input type="number" value="${line.utilization}" data-quote-index="${index}" data-quote-key="utilization" /></td>
@@ -1367,6 +1448,9 @@ function renderQuoteLines(settings) {
       `;
     })
     .join("");
+  document.querySelectorAll("#quoteLineRows select[data-quote-key='materialName']").forEach((select, index) => {
+    select.value = quoteLines[index].materialName || "";
+  });
 }
 
 function renderQuote() {
@@ -1481,7 +1565,7 @@ function renderEnterpriseHeader() {
 function switchEnterprise(enterpriseId) {
   activeEnterpriseId = enterpriseProfiles[enterpriseId] ? enterpriseId : "sheetMetal";
   state = buildEnterpriseState(activeEnterpriseId);
-  quoteLines = structuredClone(defaultQuoteLines);
+  quoteLines = defaultQuoteLinesForInventory();
   currentCaptureLines = [];
   const firstCustomer = state.customers[0]?.name || "";
   const quoteCustomer = document.querySelector("#quoteCustomer");
@@ -1548,7 +1632,7 @@ document.querySelectorAll(".doc-sample").forEach((button) => {
 });
 document.querySelector("#seedBtn").addEventListener("click", () => {
   state = buildEnterpriseState(activeEnterpriseId);
-  quoteLines = structuredClone(defaultQuoteLines);
+  quoteLines = defaultQuoteLinesForInventory();
   currentCaptureLines = [];
   const firstCustomer = state.customers[0]?.name || "";
   const quoteCustomer = document.querySelector("#quoteCustomer");

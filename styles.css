@@ -505,12 +505,15 @@ tbody tr:hover {
 }
 
 .quote-meta input,
-.quote-lines-table input {
+.quote-lines-table input,
+.quote-lines-table select {
   width: 100%;
   min-height: 34px;
   padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
 }
 
 .quote-lines-wrap {
