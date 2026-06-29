@@ -586,7 +586,7 @@ function defaultQuoteLinesForInventory() {
 
 let quoteLines = defaultQuoteLinesForInventory();
 let activeQuoteHistoryId = "";
-let quoteHistories = loadQuoteHistories(activeEnterpriseId);
+let quoteHistories = [];
 
 function quoteHistoryStorageKey(enterpriseId = activeEnterpriseId) {
   return `metal-finance-quote-history-${enterpriseId}`;
@@ -624,14 +624,19 @@ function loadQuoteHistories(enterpriseId = activeEnterpriseId) {
   try {
     const saved = JSON.parse(localStorage.getItem(quoteHistoryStorageKey(enterpriseId)) || "[]");
     if (Array.isArray(saved) && saved.length) return saved;
-  } catch {
+  } catch (error) {
     // Ignore malformed local history and fall back to samples.
   }
   return seedQuoteHistories(enterpriseId);
 }
 
 function persistQuoteHistories() {
-  localStorage.setItem(quoteHistoryStorageKey(), JSON.stringify(quoteHistories.slice(0, 20)));
+  try {
+    localStorage.setItem(quoteHistoryStorageKey(), JSON.stringify(quoteHistories.slice(0, 20)));
+  } catch (error) {
+    const status = document.querySelector("#quoteHistoryStatus");
+    if (status) status.textContent = "浏览器未允许保存";
+  }
 }
 
 function sumObject(obj) {
@@ -1755,5 +1760,6 @@ document.querySelector("#seedBtn").addEventListener("click", () => {
 });
 window.addEventListener("hashchange", routeFromHash);
 
+quoteHistories = loadQuoteHistories(activeEnterpriseId);
 renderAll();
 routeFromHash();
