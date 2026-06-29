@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=quote-customer-select-20260629" />
+    <link rel="stylesheet" href="./styles.css?v=quote-history-match-20260629" />
   </head>
   <body>
     <aside class="sidebar">
@@ -174,9 +174,15 @@
           <section class="panel quote-editor">
             <div class="quote-meta">
               <label>客户<select id="quoteCustomer"></select></label>
+              <label>历史报价<select id="quoteHistorySelect"></select></label>
               <label>报价单号<input id="quoteNo" value="QT-202606-001" /></label>
               <label>管理费用 %<input id="quoteOverhead" type="number" step="1" value="12" /></label>
               <label>目标利润率 %<input id="quoteMargin" type="number" step="1" value="28" /></label>
+            </div>
+            <div class="quote-meta-actions">
+              <button id="applyQuoteHistoryBtn" type="button">套用历史</button>
+              <button id="saveQuoteHistoryBtn" type="button">保存当前为历史</button>
+              <span id="quoteHistoryStatus" class="status" aria-live="polite"></span>
             </div>
             <div class="table-wrap quote-lines-wrap">
               <table class="quote-lines-table">
@@ -456,7 +462,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=quote-customer-select-20260629"></script>
-    <script src="./app.js?v=quote-customer-select-20260629"></script>
+    <script src="./xlsx.full.min.js?v=quote-history-match-20260629"></script>
+    <script src="./app.js?v=quote-history-match-20260629"></script>
   </body>
 </html>

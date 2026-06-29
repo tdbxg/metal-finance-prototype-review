@@ -585,6 +585,54 @@ function defaultQuoteLinesForInventory() {
 }
 
 let quoteLines = defaultQuoteLinesForInventory();
+let activeQuoteHistoryId = "";
+let quoteHistories = loadQuoteHistories(activeEnterpriseId);
+
+function quoteHistoryStorageKey(enterpriseId = activeEnterpriseId) {
+  return `metal-finance-quote-history-${enterpriseId}`;
+}
+
+function seedQuoteHistories(enterpriseId = activeEnterpriseId) {
+  const baseLines = defaultQuoteLinesForInventory();
+  const firstCustomer = state.customers[0]?.name || "";
+  const secondCustomer = state.customers[1]?.name || firstCustomer;
+  return [
+    {
+      id: `${enterpriseId}-sample-1`,
+      name: `${firstCustomer} / 支架外壳历史报价`,
+      customer: firstCustomer,
+      quoteNo: "QT-HIS-001",
+      overhead: 12,
+      margin: 28,
+      lines: structuredClone(baseLines),
+      savedAt: "2026-06-28",
+    },
+    {
+      id: `${enterpriseId}-sample-2`,
+      name: `${secondCustomer} / 小批量加急报价`,
+      customer: secondCustomer,
+      quoteNo: "QT-HIS-002",
+      overhead: 15,
+      margin: 32,
+      lines: structuredClone(baseLines).map((line) => ({ ...line, qty: Math.max(Math.round(line.qty / 2), 10), cutMinutes: Number(line.cutMinutes || 0) + 1 })),
+      savedAt: "2026-06-27",
+    },
+  ];
+}
+
+function loadQuoteHistories(enterpriseId = activeEnterpriseId) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(quoteHistoryStorageKey(enterpriseId)) || "[]");
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch {
+    // Ignore malformed local history and fall back to samples.
+  }
+  return seedQuoteHistories(enterpriseId);
+}
+
+function persistQuoteHistories() {
+  localStorage.setItem(quoteHistoryStorageKey(), JSON.stringify(quoteHistories.slice(0, 20)));
+}
 
 function sumObject(obj) {
   return Object.values(obj).reduce((sum, value) => sum + Number(value || 0), 0);
@@ -1455,8 +1503,59 @@ function renderQuoteLines(settings) {
   });
 }
 
+function renderQuoteHistoryOptions() {
+  const select = document.querySelector("#quoteHistorySelect");
+  if (!select) return;
+  select.innerHTML = `<option value="">选择历史报价</option>${quoteHistories
+    .map((item) => `<option value="${item.id}">${item.savedAt} / ${item.customer} / ${item.quoteNo}</option>`)
+    .join("")}`;
+  select.value = activeQuoteHistoryId;
+}
+
+function applyQuoteHistory(historyId = document.querySelector("#quoteHistorySelect")?.value) {
+  const history = quoteHistories.find((item) => item.id === historyId);
+  const status = document.querySelector("#quoteHistoryStatus");
+  if (!history) {
+    if (status) status.textContent = "请选择历史记录";
+    return;
+  }
+
+  activeQuoteHistoryId = history.id;
+  document.querySelector("#quoteCustomer").value = state.customers.some((customer) => customer.name === history.customer) ? history.customer : state.customers[0]?.name || "";
+  document.querySelector("#quoteNo").value = `${history.quoteNo}-COPY`;
+  document.querySelector("#quoteOverhead").value = history.overhead;
+  document.querySelector("#quoteMargin").value = history.margin;
+  quoteLines = structuredClone(history.lines);
+  if (status) status.textContent = "已套用历史报价";
+  renderQuote();
+}
+
+function currentQuoteHistorySnapshot() {
+  return {
+    id: `quote-${Date.now()}`,
+    name: `${document.querySelector("#quoteCustomer").value} / ${document.querySelector("#quoteNo").value}`,
+    customer: document.querySelector("#quoteCustomer").value,
+    quoteNo: document.querySelector("#quoteNo").value,
+    overhead: Number(document.querySelector("#quoteOverhead").value || 0),
+    margin: Number(document.querySelector("#quoteMargin").value || 0),
+    lines: structuredClone(quoteLines),
+    savedAt: new Date().toISOString().slice(0, 10),
+  };
+}
+
+function saveQuoteHistory() {
+  const history = currentQuoteHistorySnapshot();
+  quoteHistories = [history, ...quoteHistories.filter((item) => item.quoteNo !== history.quoteNo)].slice(0, 20);
+  activeQuoteHistoryId = history.id;
+  persistQuoteHistories();
+  renderQuoteHistoryOptions();
+  const status = document.querySelector("#quoteHistoryStatus");
+  if (status) status.textContent = "已保存历史";
+}
+
 function renderQuote() {
   const settings = quoteSettings();
+  renderQuoteHistoryOptions();
   renderQuoteLines(settings);
 
   const lineResults = quoteLines.map((line) => quoteLineResult(line, settings));
@@ -1568,6 +1667,8 @@ function switchEnterprise(enterpriseId) {
   activeEnterpriseId = enterpriseProfiles[enterpriseId] ? enterpriseId : "sheetMetal";
   state = buildEnterpriseState(activeEnterpriseId);
   quoteLines = defaultQuoteLinesForInventory();
+  quoteHistories = loadQuoteHistories(activeEnterpriseId);
+  activeQuoteHistoryId = "";
   currentCaptureLines = [];
   const firstCustomer = state.customers[0]?.name || "";
   const quoteCustomer = document.querySelector("#quoteCustomer");
@@ -1598,10 +1699,19 @@ document.querySelector("#quoteOverhead").addEventListener("input", renderQuote);
 document.querySelector("#quoteMargin").addEventListener("input", renderQuote);
 document.querySelector("#quoteCustomer").addEventListener("change", renderQuote);
 document.querySelector("#quoteNo").addEventListener("input", renderQuote);
+document.querySelector("#quoteHistorySelect").addEventListener("change", (event) => {
+  activeQuoteHistoryId = event.target.value;
+  if (event.target.value) applyQuoteHistory(event.target.value);
+});
+document.querySelector("#applyQuoteHistoryBtn").addEventListener("click", () => applyQuoteHistory());
+document.querySelector("#saveQuoteHistoryBtn").addEventListener("click", saveQuoteHistory);
 document.querySelector("#quoteLineRows").addEventListener("change", (event) => {
   const index = event.target.dataset.quoteIndex;
   const key = event.target.dataset.quoteKey;
-  if (index != null && key) updateQuoteLine(Number(index), key, event.target.value);
+  if (index != null && key) {
+    activeQuoteHistoryId = "";
+    updateQuoteLine(Number(index), key, event.target.value);
+  }
 });
 document.querySelector("#quoteLineRows").addEventListener("click", (event) => {
   const index = event.target.dataset.removeQuote;
@@ -1635,6 +1745,8 @@ document.querySelectorAll(".doc-sample").forEach((button) => {
 document.querySelector("#seedBtn").addEventListener("click", () => {
   state = buildEnterpriseState(activeEnterpriseId);
   quoteLines = defaultQuoteLinesForInventory();
+  quoteHistories = loadQuoteHistories(activeEnterpriseId);
+  activeQuoteHistoryId = "";
   currentCaptureLines = [];
   const firstCustomer = state.customers[0]?.name || "";
   const quoteCustomer = document.querySelector("#quoteCustomer");
