@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>金属加工订单财务闭环原型</title>
-    <link rel="stylesheet" href="./styles.css?v=separate-pages-20260629" />
+    <link rel="stylesheet" href="./styles.css?v=enterprise-switcher-20260629" />
   </head>
   <body>
     <aside class="sidebar">
@@ -31,10 +31,17 @@
     <main>
       <header class="topbar">
         <div>
-          <p class="eyebrow">按图定制 / 样品 / 小批量 / 国内订单</p>
-          <h1>订单财务闭环工作台</h1>
+          <p class="eyebrow" id="enterpriseTagline">按图定制 / 样品 / 小批量 / 国内订单</p>
+          <h1 id="enterpriseTitle">订单财务闭环工作台</h1>
         </div>
         <div class="toolbar">
+          <label class="enterprise-switch">企业
+            <select id="enterpriseSelect" aria-label="选择企业">
+              <option value="sheetMetal">顶宏激光钣金</option>
+              <option value="cncPrecision">华东 CNC 精密加工</option>
+              <option value="surfaceCoating">苏州表面处理外协</option>
+            </select>
+          </label>
           <button id="seedBtn" type="button" title="恢复样例数据">恢复样例</button>
           <button id="exportBtn" type="button" title="导出当前订单数据">导出 CSV</button>
           <span id="exportStatus" class="status" aria-live="polite"></span>
@@ -449,7 +456,7 @@
       </section>
     </main>
 
-    <script src="./xlsx.full.min.js?v=separate-pages-20260629"></script>
-    <script src="./app.js?v=separate-pages-20260629"></script>
+    <script src="./xlsx.full.min.js?v=enterprise-switcher-20260629"></script>
+    <script src="./app.js?v=enterprise-switcher-20260629"></script>
   </body>
 </html>

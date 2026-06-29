@@ -262,7 +262,23 @@ const defaultState = {
   ],
 };
 
-let state = structuredClone(defaultState);
+const enterpriseProfiles = {
+  sheetMetal: {
+    title: "订单财务闭环工作台",
+    tagline: "顶宏激光钣金 / 按图定制 / 样品 / 小批量 / 国内订单",
+  },
+  cncPrecision: {
+    title: "CNC 精密加工财务工作台",
+    tagline: "华东 CNC 精密加工 / 铝件 / 工装夹具 / 小批量订单",
+  },
+  surfaceCoating: {
+    title: "表面处理外协财务工作台",
+    tagline: "苏州表面处理外协 / 喷粉 / 阳极 / 电镀 / 对账结算",
+  },
+};
+
+let activeEnterpriseId = "sheetMetal";
+let state = buildEnterpriseState(activeEnterpriseId);
 let currentCaptureLines = [];
 
 const today = new Date("2026-06-26T00:00:00+08:00");
@@ -279,6 +295,60 @@ const preciseCurrency = new Intl.NumberFormat("zh-CN", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+
+function buildEnterpriseState(enterpriseId) {
+  const nextState = structuredClone(defaultState);
+  if (enterpriseId === "cncPrecision") {
+    nextState.customers = [
+      { name: "无锡智造装备", taxId: "91320200MA00001001", contact: "刘经理", phone: "13900001001", region: "江苏无锡", address: "无锡市新吴区样例路 9 号", level: "A", paymentTerm: "月结30天", status: "合作中", updatedAt: "2026-06-26", note: "铝件腔体和工装夹具较多" },
+      { name: "常州新能源部件", taxId: "91320400MA00001002", contact: "沈工", phone: "13900001002", region: "江苏常州", address: "常州市武进区样例路 22 号", level: "B", paymentTerm: "预付40%", status: "打样中", updatedAt: "2026-06-22", note: "关注材料牌号和检验报告" },
+    ];
+    nextState.orders = nextState.orders.slice(0, 3).map((order, index) => ({
+      ...order,
+      id: ["CNC-2606-011", "CNC-2606-018", "CNC-2605-006"][index],
+      customer: index === 1 ? "常州新能源部件" : "无锡智造装备",
+      type: index === 2 ? "sample" : "small_batch",
+      qty: [48, 120, 10][index],
+      revenue: { processing: [88000, 126000, 18000][index], material: [22000, 36000, 4200][index], surface: [6000, 12000, 1600][index], packing: 1800, shipping: 1200, tooling: [9800, 0, 3200][index] },
+      costs: { ...order.costs, material: [24500, 39800, 5200][index], cnc: [42000, 58000, 8600][index], surface: [4200, 8400, 900][index], logistics: 1000, labor: [16800, 22600, 3600][index] },
+      received: [52000, 60000, 9000][index],
+    }));
+    nextState.inventory = [
+      { name: "6061 铝棒", material: "铝合金", thickness: "D80", spec: "3000mm", qty: 820, unit: "kg", price: 25.8, loss: 12 },
+      { name: "7075 铝板", material: "铝合金", thickness: "20mm", spec: "1250x2500", qty: 360, unit: "kg", price: 42.5, loss: 16 },
+      { name: "45# 圆钢", material: "碳钢", thickness: "D60", spec: "6000mm", qty: 1100, unit: "kg", price: 6.8, loss: 8 },
+    ];
+    nextState.payables = [
+      { supplier: "昆山铝材供应商", category: "材料", amount: 39800, paid: 12000, dueDate: "2026-07-06", invoice: "待开票" },
+      { supplier: "无锡热处理厂", category: "CNC 外协", amount: 12600, paid: 0, dueDate: "2026-07-10", invoice: "未到票" },
+    ];
+  } else if (enterpriseId === "surfaceCoating") {
+    nextState.customers = [
+      { name: "苏州钣金配套厂", taxId: "91320500MA00002001", contact: "周经理", phone: "13900002001", region: "江苏苏州", address: "苏州市相城区样例路 16 号", level: "A", paymentTerm: "月结45天", status: "合作中", updatedAt: "2026-06-25", note: "喷粉黑砂、白砂为主" },
+      { name: "上海设备外壳厂", taxId: "91310000MA00002002", contact: "吴工", phone: "13900002002", region: "上海", address: "上海市松江区样例路 38 号", level: "B", paymentTerm: "月结30天", status: "合作中", updatedAt: "2026-06-20", note: "阳极氧化件较多" },
+    ];
+    nextState.orders = nextState.orders.slice(0, 3).map((order, index) => ({
+      ...order,
+      id: ["SP-2606-033", "SP-2606-041", "SP-2605-019"][index],
+      customer: index === 1 ? "上海设备外壳厂" : "苏州钣金配套厂",
+      type: index === 2 ? "sample" : "batch",
+      qty: [800, 420, 60][index],
+      revenue: { processing: [39800, 28600, 5200][index], material: 0, surface: [18000, 12600, 2400][index], packing: [2600, 1800, 500][index], shipping: [1800, 1200, 300][index], tooling: 0 },
+      costs: { ...order.costs, material: 0, laser: 0, bending: 0, cnc: 0, welding: 0, surface: [19800, 14200, 2600][index], packing: [1600, 1200, 300][index], logistics: [1200, 800, 200][index], labor: [9800, 7200, 1600][index], depreciation: [2600, 1800, 500][index] },
+      received: [30000, 12000, 5200][index],
+    }));
+    nextState.inventory = [
+      { name: "黑砂粉末", material: "粉末涂料", thickness: "-", spec: "25kg/箱", qty: 86, unit: "箱", price: 420, loss: 5 },
+      { name: "白砂粉末", material: "粉末涂料", thickness: "-", spec: "25kg/箱", qty: 54, unit: "箱", price: 390, loss: 5 },
+      { name: "阳极药水", material: "化工辅料", thickness: "-", spec: "桶", qty: 28, unit: "桶", price: 680, loss: 3 },
+    ];
+    nextState.payables = [
+      { supplier: "粉末涂料供应商", category: "材料", amount: 18600, paid: 8000, dueDate: "2026-07-03", invoice: "待开票" },
+      { supplier: "危废处理服务商", category: "物流", amount: 5200, paid: 0, dueDate: "2026-07-15", invoice: "未到票" },
+    ];
+  }
+  return nextState;
+}
 
 const sampleDocuments = {
   production: {
@@ -1382,6 +1452,7 @@ function downloadCsv(filename, rows) {
 }
 
 function renderAll() {
+  renderEnterpriseHeader();
   renderKpis();
   renderCustomers();
   renderOrders();
@@ -1395,6 +1466,28 @@ function renderAll() {
   renderCaptureLineItems();
   renderImportFields();
   renderTaxInvoices();
+}
+
+function renderEnterpriseHeader() {
+  const profile = enterpriseProfiles[activeEnterpriseId] || enterpriseProfiles.sheetMetal;
+  const title = document.querySelector("#enterpriseTitle");
+  const tagline = document.querySelector("#enterpriseTagline");
+  const selector = document.querySelector("#enterpriseSelect");
+  if (title) title.textContent = profile.title;
+  if (tagline) tagline.textContent = profile.tagline;
+  if (selector) selector.value = activeEnterpriseId;
+}
+
+function switchEnterprise(enterpriseId) {
+  activeEnterpriseId = enterpriseProfiles[enterpriseId] ? enterpriseId : "sheetMetal";
+  state = buildEnterpriseState(activeEnterpriseId);
+  quoteLines = structuredClone(defaultQuoteLines);
+  currentCaptureLines = [];
+  const firstCustomer = state.customers[0]?.name || "";
+  const quoteCustomer = document.querySelector("#quoteCustomer");
+  if (quoteCustomer) quoteCustomer.value = firstCustomer;
+  document.querySelector("#exportStatus").textContent = "已切换企业";
+  renderAll();
 }
 
 function showPage(pageId = "dashboard") {
@@ -1412,6 +1505,7 @@ function routeFromHash() {
 }
 
 document.querySelector("#orderFilter").addEventListener("change", renderOrders);
+document.querySelector("#enterpriseSelect").addEventListener("change", (event) => switchEnterprise(event.target.value));
 document.querySelector("#quoteBtn").addEventListener("click", renderQuote);
 document.querySelector("#addQuoteLineBtn").addEventListener("click", addQuoteLine);
 document.querySelector("#quoteOverhead").addEventListener("input", renderQuote);
@@ -1453,8 +1547,12 @@ document.querySelectorAll(".doc-sample").forEach((button) => {
   button.addEventListener("click", () => setRecognition(sampleDocuments[button.dataset.doc]));
 });
 document.querySelector("#seedBtn").addEventListener("click", () => {
-  state = structuredClone(defaultState);
+  state = buildEnterpriseState(activeEnterpriseId);
   quoteLines = structuredClone(defaultQuoteLines);
+  currentCaptureLines = [];
+  const firstCustomer = state.customers[0]?.name || "";
+  const quoteCustomer = document.querySelector("#quoteCustomer");
+  if (quoteCustomer) quoteCustomer.value = firstCustomer;
   renderAll();
 });
 window.addEventListener("hashchange", routeFromHash);
