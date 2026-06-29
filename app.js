@@ -1397,6 +1397,20 @@ function renderAll() {
   renderTaxInvoices();
 }
 
+function showPage(pageId = "dashboard") {
+  const page = document.querySelector(`#${pageId}`) ? pageId : "dashboard";
+  document.querySelectorAll("main > .section").forEach((section) => {
+    section.classList.toggle("active", section.id === page);
+  });
+  document.querySelectorAll("nav a").forEach((link) => {
+    link.classList.toggle("active", link.getAttribute("href") === `#${page}`);
+  });
+}
+
+function routeFromHash() {
+  showPage(window.location.hash.replace("#", "") || "dashboard");
+}
+
 document.querySelector("#orderFilter").addEventListener("change", renderOrders);
 document.querySelector("#quoteBtn").addEventListener("click", renderQuote);
 document.querySelector("#addQuoteLineBtn").addEventListener("click", addQuoteLine);
@@ -1443,5 +1457,7 @@ document.querySelector("#seedBtn").addEventListener("click", () => {
   quoteLines = structuredClone(defaultQuoteLines);
   renderAll();
 });
+window.addEventListener("hashchange", routeFromHash);
 
 renderAll();
+routeFromHash();

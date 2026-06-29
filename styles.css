@@ -217,7 +217,12 @@ h2 {
 }
 
 .section {
+  display: none;
   padding: 22px 28px;
+}
+
+.section.active {
+  display: block;
 }
 
 .section-title,
