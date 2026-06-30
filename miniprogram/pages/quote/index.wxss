@@ -1,0 +1,4 @@
+.line-card button {
+  width: 120rpx;
+  color: #b42318;
+}

@@ -1,0 +1,3 @@
+.photo-box .btn-row {
+  justify-content: center;
+}

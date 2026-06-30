@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/dashboard/index",
+    "pages/quote/index",
+    "pages/customers/index",
+    "pages/inventory/index",
+    "pages/capture/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "金属加工财务",
+    "navigationBarBackgroundColor": "#f6f8f3",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f6f8f3"
+  },
+  "tabBar": {
+    "color": "#69756d",
+    "selectedColor": "#176f52",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/index",
+        "text": "总览"
+      },
+      {
+        "pagePath": "pages/quote/index",
+        "text": "报价"
+      },
+      {
+        "pagePath": "pages/customers/index",
+        "text": "客户"
+      },
+      {
+        "pagePath": "pages/inventory/index",
+        "text": "材料"
+      },
+      {
+        "pagePath": "pages/capture/index",
+        "text": "拍单据"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

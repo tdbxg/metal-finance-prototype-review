@@ -1,0 +1,38 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">Customers</view>
+    <text class="title">客户档案</text>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>客户导入</text>
+      <text class="muted">Excel/CSV 文件</text>
+    </view>
+    <view class="btn-row">
+      <button class="primary" bindtap="chooseCustomerFile">选择客户表</button>
+      <button bindtap="addCustomer">新增客户</button>
+    </view>
+    <view class="muted">{{importStatus}}</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>客户列表</text>
+      <text class="muted">{{customers.length}} 个</text>
+    </view>
+    <block wx:for="{{customers}}" wx:key="name">
+      <view class="row">
+        <view>
+          <view class="strong">{{item.name}}</view>
+          <view class="muted">{{item.contact}} / {{item.phone}}</view>
+          <view class="muted">{{item.taxId}}</view>
+        </view>
+        <view>
+          <view class="strong">{{item.level}}</view>
+          <view class="muted">{{item.term}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

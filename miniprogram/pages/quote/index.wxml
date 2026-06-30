@@ -1,0 +1,122 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">Quotation</view>
+    <text class="title">多零件报价单</text>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>报价信息</text>
+      <text class="muted">{{summary.lineCount}} 行</text>
+    </view>
+    <view class="field">
+      <text class="label">客户</text>
+      <picker range="{{customerNames}}" value="{{quote.customerIndex}}" bindchange="onCustomerChange">
+        <view>{{customerNames[quote.customerIndex]}}</view>
+      </picker>
+    </view>
+    <view class="mini-grid">
+      <view class="field">
+        <text class="label">报价单号</text>
+        <input value="{{quote.quoteNo}}" data-key="quoteNo" bindinput="onQuoteInput" />
+      </view>
+      <view class="field">
+        <text class="label">管理费 %</text>
+        <input type="digit" value="{{quote.overhead}}" data-key="overhead" bindinput="onQuoteInput" />
+      </view>
+      <view class="field">
+        <text class="label">目标毛利 %</text>
+        <input type="digit" value="{{quote.margin}}" data-key="margin" bindinput="onQuoteInput" />
+      </view>
+      <view class="field">
+        <text class="label">历史报价</text>
+        <picker range="{{historyNames}}" bindchange="onHistoryChange">
+          <view>{{historyLabel}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="btn-row">
+      <button class="primary" bindtap="saveHistory">保存历史</button>
+      <button bindtap="addLine">新增零件</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>报价汇总</text>
+      <text class="money">{{summary.totalPriceText}}</text>
+    </view>
+    <view class="row">
+      <text>内部成本</text>
+      <text>{{summary.totalCostText}}</text>
+    </view>
+    <view class="row">
+      <text>预计毛利</text>
+      <text class="money">{{summary.grossProfitText}} / {{summary.grossRateText}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>零件明细</text>
+      <text class="muted">材料自动带价</text>
+    </view>
+    <view wx:if="{{!quote.lines.length}}" class="empty">暂无零件，点击“新增零件”开始报价</view>
+    <block wx:for="{{quote.lines}}" wx:key="index">
+      <view class="line-card">
+        <view class="line-actions">
+          <text class="strong">零件 {{index + 1}}</text>
+          <button size="mini" data-index="{{index}}" bindtap="removeLine">删除</button>
+        </view>
+        <view class="field">
+          <text class="label">图号/零件</text>
+          <input value="{{item.part}}" data-index="{{index}}" data-key="part" bindinput="onLineInput" />
+        </view>
+        <view class="field">
+          <text class="label">材料</text>
+          <picker range="{{materialNames}}" value="{{item.materialIndex}}" data-index="{{index}}" bindchange="onMaterialChange">
+            <view>{{materialNames[item.materialIndex]}}</view>
+          </picker>
+        </view>
+        <view class="mini-grid">
+          <view class="field">
+            <text class="label">数量</text>
+            <input type="digit" value="{{item.qty}}" data-index="{{index}}" data-key="qty" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">重量kg</text>
+            <input type="digit" value="{{item.weight}}" data-index="{{index}}" data-key="weight" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">利用率%</text>
+            <input type="digit" value="{{item.utilization}}" data-index="{{index}}" data-key="utilization" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">切割分</text>
+            <input type="digit" value="{{item.cutting}}" data-index="{{index}}" data-key="cutting" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">折弯</text>
+            <input type="digit" value="{{item.bending}}" data-index="{{index}}" data-key="bending" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">CNC时</text>
+            <input type="digit" value="{{item.cnc}}" data-index="{{index}}" data-key="cnc" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">焊接时</text>
+            <input type="digit" value="{{item.welding}}" data-index="{{index}}" data-key="welding" bindinput="onLineInput" />
+          </view>
+          <view class="field">
+            <text class="label">表处</text>
+            <input type="digit" value="{{item.surface}}" data-index="{{index}}" data-key="surface" bindinput="onLineInput" />
+          </view>
+        </view>
+        <view class="row">
+          <text>单价</text>
+          <text class="money">{{lineResults[index].unitPriceText}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

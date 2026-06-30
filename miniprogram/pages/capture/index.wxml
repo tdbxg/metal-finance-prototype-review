@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">Capture</view>
+    <text class="title">拍照上传单据</text>
+  </view>
+
+  <view class="card">
+    <view class="photo-box">
+      <view class="strong">生产单、收货单、发票、银行回单</view>
+      <view class="muted">先拍照留档，识别后进入待复核队列</view>
+      <view class="btn-row">
+        <button class="primary" bindtap="takePhoto">拍照/相册</button>
+        <button bindtap="mockRecognize">模拟识别</button>
+      </view>
+      <image wx:if="{{imagePath}}" class="preview-img" src="{{imagePath}}" mode="widthFix" />
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{recognized}}">
+    <view class="card-title">
+      <text>识别结果</text>
+      <text class="muted">{{recognized.confidence}}</text>
+    </view>
+    <view class="row">
+      <text>单据类型</text>
+      <text class="strong">{{recognized.type}}</text>
+    </view>
+    <view class="row">
+      <text>往来单位</text>
+      <text>{{recognized.party}}</text>
+    </view>
+    <view class="row">
+      <text>金额</text>
+      <text class="money">{{recognized.amountText}}</text>
+    </view>
+    <view class="btn-row">
+      <button class="primary" bindtap="saveCapture">保存入队</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>单据队列</text>
+      <text class="muted">{{captures.length}} 张</text>
+    </view>
+    <block wx:for="{{captures}}" wx:key="docNo">
+      <view class="row">
+        <view>
+          <view class="strong">{{item.docNo}}</view>
+          <view class="muted">{{item.type}} / {{item.party}}</view>
+        </view>
+        <view>
+          <view class="money">{{item.amountText}}</view>
+          <view class="muted">{{item.status}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

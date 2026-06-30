@@ -1,0 +1,63 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">{{enterprise.tagline}}</view>
+    <text class="title">{{enterprise.name}}财务总览</text>
+  </view>
+
+  <view class="grid">
+    <view class="metric">
+      <text class="metric-label">订单收入</text>
+      <text class="metric-value">{{kpis.income}}</text>
+    </view>
+    <view class="metric">
+      <text class="metric-label">订单成本</text>
+      <text class="metric-value">{{kpis.cost}}</text>
+    </view>
+    <view class="metric">
+      <text class="metric-label">毛利</text>
+      <text class="metric-value">{{kpis.profit}}</text>
+    </view>
+    <view class="metric">
+      <text class="metric-label">未收款</text>
+      <text class="metric-value">{{kpis.unpaid}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>订单利润</text>
+      <text class="muted">单笔核算</text>
+    </view>
+    <block wx:for="{{orders}}" wx:key="id">
+      <view class="row">
+        <view>
+          <view class="strong">{{item.id}}</view>
+          <view class="muted">{{item.customer}} / 应收 {{item.dueDate}}</view>
+        </view>
+        <view>
+          <view class="money">{{item.profitText}}</view>
+          <view class="muted">未收 {{item.unpaidText}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text>今日待处理</text>
+      <text class="muted">移动端优先</text>
+    </view>
+    <view class="row">
+      <text>拍照上传单据</text>
+      <text class="strong">{{captureCount}} 张</text>
+    </view>
+    <view class="row">
+      <text>客户档案更新</text>
+      <text class="strong">{{customerCount}} 个客户</text>
+    </view>
+    <view class="row">
+      <text>材料价格维护</text>
+      <text class="strong">{{materialCount}} 种材料</text>
+    </view>
+  </view>
+</view>
