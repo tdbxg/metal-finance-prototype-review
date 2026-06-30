@@ -1,7 +1,13 @@
 {
-  "description": "金属加工订单财务闭环小程序原型",
+  "description": "金属加工订单财务闭环小程序原型，直接导入 miniprogram 目录时使用",
+  "miniprogramRoot": "./",
   "packOptions": {
-    "ignore": []
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "node_modules"
+      }
+    ]
   },
   "setting": {
     "urlCheck": false,
