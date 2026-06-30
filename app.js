@@ -1470,7 +1470,6 @@ function addQuoteLine() {
 }
 
 function removeQuoteLine(index) {
-  if (quoteLines.length <= 1) return;
   quoteLines.splice(index, 1);
   renderQuote();
 }
@@ -1479,11 +1478,20 @@ function renderQuoteLines(settings) {
   const materialOptions = state.inventory
     .map((material) => `<option value="${material.name}">${material.name} / ${material.material} / ${material.thickness} / ${Number(material.price || 0).toFixed(2)}元/${material.unit}</option>`)
     .join("");
+  if (!quoteLines.length) {
+    document.querySelector("#quoteLineRows").innerHTML = `
+      <tr>
+        <td class="empty-row" colspan="15">暂无零件，点击“新增零件”开始报价</td>
+      </tr>
+    `;
+    return;
+  }
   document.querySelector("#quoteLineRows").innerHTML = quoteLines
     .map((line, index) => {
       const result = quoteLineResult(line, settings);
       return `
         <tr>
+          <td><button class="icon-button" type="button" data-remove-quote="${index}" title="删除零件">删</button></td>
           <td><input value="${line.part}" data-quote-index="${index}" data-quote-key="part" /></td>
           <td><input type="number" value="${line.qty}" data-quote-index="${index}" data-quote-key="qty" /></td>
           <td><select data-quote-index="${index}" data-quote-key="materialName"><option value="">手动填写</option>${materialOptions}</select></td>
@@ -1498,7 +1506,6 @@ function renderQuoteLines(settings) {
           <td><input type="number" step="0.1" value="${line.packingLogistics}" data-quote-index="${index}" data-quote-key="packingLogistics" /></td>
           <td class="money">${currency.format(result.unitPrice)}</td>
           <td class="money">${currency.format(result.totalPrice)}</td>
-          <td><button class="icon-button" type="button" data-remove-quote="${index}" title="删除零件">删</button></td>
         </tr>
       `;
     })

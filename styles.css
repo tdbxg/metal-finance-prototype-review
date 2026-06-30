@@ -538,7 +538,7 @@ tbody tr:hover {
 
 .quote-lines-table {
   table-layout: fixed;
-  min-width: 1540px;
+  min-width: 1550px;
 }
 
 .quote-lines-table th,
@@ -548,39 +548,39 @@ tbody tr:hover {
 
 .quote-lines-table th:first-child,
 .quote-lines-table td:first-child {
-  width: 220px;
+  width: 64px;
 }
 
 .quote-lines-table th:nth-child(2),
 .quote-lines-table td:nth-child(2) {
-  width: 92px;
+  width: 220px;
 }
 
 .quote-lines-table th:nth-child(3),
 .quote-lines-table td:nth-child(3) {
-  width: 240px;
+  width: 92px;
 }
 
 .quote-lines-table th:nth-child(4),
 .quote-lines-table td:nth-child(4) {
+  width: 240px;
+}
+
+.quote-lines-table th:nth-child(5),
+.quote-lines-table td:nth-child(5) {
   width: 132px;
 }
 
-.quote-lines-table th:nth-child(n + 5):nth-child(-n + 11),
-.quote-lines-table td:nth-child(n + 5):nth-child(-n + 11) {
+.quote-lines-table th:nth-child(n + 6):nth-child(-n + 12),
+.quote-lines-table td:nth-child(n + 6):nth-child(-n + 12) {
   width: 104px;
 }
 
-.quote-lines-table th:nth-child(12),
-.quote-lines-table td:nth-child(12),
 .quote-lines-table th:nth-child(13),
-.quote-lines-table td:nth-child(13) {
+.quote-lines-table td:nth-child(13),
+.quote-lines-table th:nth-child(14),
+.quote-lines-table td:nth-child(14) {
   width: 118px;
-}
-
-.quote-lines-table th:last-child,
-.quote-lines-table td:last-child {
-  width: 48px;
 }
 
 .quote-lines-table input,
@@ -592,6 +592,12 @@ tbody tr:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.empty-row {
+  padding: 22px 12px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .quote-summary {
